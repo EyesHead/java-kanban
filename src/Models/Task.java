@@ -1,3 +1,7 @@
+package Models;
+
+import Statuses.Status;
+
 import java.util.Objects;
 
 public class Task {
@@ -20,10 +24,10 @@ public class Task {
 
 
 
-    public int getID(){
+    public int getId(){
         return id;
     }
-    public void setID(int id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -50,12 +54,11 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
+        return "Models.Task{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", id=" + id +
-                ", status=" + status +
+                ", id='" + id + '\'' +
+                ", status='" + status + '\'' +
                 '}';
     }
-
 }
