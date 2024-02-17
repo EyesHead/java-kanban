@@ -1,10 +1,8 @@
-package Controller;
+package controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import Models.*;
-import Statuses.Status;
+import models.*;
 
 public class TaskManager {
     private int id = 0;
@@ -82,14 +80,14 @@ public class TaskManager {
     }
 
 
-    public void clearAllTasks() {
+    public void deleteAllTasks() {
         tasks.clear();
     }
-    public void clearAllEpics() {
+    public void deleteAllEpics() {
         epics.clear();
         subtasks.clear();
     }
-    public void clearAllSubtasks() {
+    public void deleteAllSubtasks() {
         for (Epic epic : epics.values()) { // очищаем список id сабтасок у каждого объекта-эпика в epics
             epic.setSubtaskIds(new ArrayList<>());
         }
@@ -97,27 +95,21 @@ public class TaskManager {
         subtasks.clear(); // очищаем мапу сабтасок
     }
 
-    public Task getTaskById(int id){
-        for (Integer taskId : tasks.keySet()){
-            if (taskId == id) {
-                return tasks.get(taskId);
-            }
+    public Task getTaskById(int taskId){
+        if (tasks.containsKey(taskId)) {
+            return tasks.get(taskId);
         }
         return null;
     }
-    public Epic getEpicById(int id){
-        for (Integer epicId : epics.keySet()){
-            if (epicId == id) {
-                return epics.get(epicId);
-            }
+    public Epic getEpicById(int epicId){
+        if (epics.containsKey(epicId)) {
+            return epics.get(epicId);
         }
         return null;
     }
-    public Subtask getSubtaskById(int id){
-        for (Integer subtaskId : subtasks.keySet()){
-            if (subtaskId == id) {
-                return subtasks.get(subtaskId);
-            }
+    public Subtask getSubtaskById(int subtaskId){
+        if (subtasks.containsKey(subtaskId)) {
+            return subtasks.get(subtaskId);
         }
         return null;
     }
@@ -136,6 +128,34 @@ public class TaskManager {
     public ArrayList<Subtask> getAllSubtasks() {
         return new ArrayList<>(subtasks.values());
     }
+
+    public void deleteTaskById(int taskId) {
+        tasks.remove(taskId);
+    }
+    public void deleteEpicById(int epicId) {
+        // удаляем все сабтаски из subtasks map, связанные с удаляемым эпиком
+        ArrayList<Subtask> subtaskListByEpicId = getSubtaskListByEpicId(epicId);
+        if (!subtaskListByEpicId.isEmpty()) {
+            for (Subtask subtask : subtaskListByEpicId) {
+                subtasks.remove(subtask.getId(), subtask);
+            }
+        }
+        //если подзадач у эпика ещё нет то просто удаляем эпик из epics map
+        epics.remove(epicId, getEpicById(epicId));
+    }
+    public void deleteSubtaskById(int subtaskId) {
+        Subtask subtask = getSubtaskById(subtaskId);
+        Epic epic = getEpicById(subtask.getEpicId());
+        // Удаляем id подзадачи в листе связанного эпика и обновляем эпик в мапе epics
+        ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
+        subtaskIds.remove((Integer) subtask.getId());
+        epic.setSubtaskIds(subtaskIds);
+        epics.put(epic.getId(), epic);
+
+        // Потом удаляем саму подзадачу из мапы подзадач
+        subtasks.remove((Integer) subtask.getId());
+    }
+
 
 
     public ArrayList<Subtask> getSubtaskListByEpicId(int relatedEpicId) {

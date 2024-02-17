@@ -1,8 +1,5 @@
-import Controller.TaskManager;
-import Models.Epic;
-import Statuses.Status;
-import Models.Subtask;
-import Models.Task;
+import controller.TaskManager;
+import models.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -65,7 +62,7 @@ public class Main {
 
         System.out.println();
         System.out.println("Удаление всех задач");
-        taskManager.clearAllTasks();
+        taskManager.deleteAllTasks();
         for (Task taskToPrint : taskManager.getAllTasks()) {
             System.out.println(taskToPrint);
         }

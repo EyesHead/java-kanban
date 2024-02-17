@@ -1,6 +1,4 @@
-package Models;
-
-import Statuses.Status;
+package models;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -10,7 +8,7 @@ public class Epic extends Task {
 
     public Epic(String name, String description) {
         super(name, description);
-        ArrayList<Integer> relatedSubtaskID = new ArrayList<>();
+        this.subtaskIds = new ArrayList<>();
     }
     public Epic(String name, String description, Status status) {
         super(name, description, status);
@@ -47,8 +45,8 @@ public class Epic extends Task {
                         ", description='" + description + '\'' +
                         ", id='" + id + '\'' +
                         ", status='" + status + '\'';
-        if (subtaskIds == null) {
-            result += ", subtaskIds=null" + '}';
+        if (subtaskIds.isEmpty()) {
+            result += ", subtaskIds is Empty" + '}';
         } else {
             result += ", subtaskIds.size()='" + subtaskIds.size()+ '\'' + '}';
         }

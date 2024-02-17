@@ -1,7 +1,4 @@
-package Models;
-
-import Statuses.Status;
-
+package models;
 import java.util.Objects;
 
 public class Task {
