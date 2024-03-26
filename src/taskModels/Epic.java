@@ -1,19 +1,17 @@
-package models;
+package taskModels;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
+import static taskModels.Status.NEW;
+
 public class Epic extends Task {
     private ArrayList<Integer> subtaskIds;
 
-    public Epic(String name, String description) {
-        super(name, description);
-        this.subtaskIds = new ArrayList<>();
-    }
     public Epic(String name, String description, Status status) {
         super(name, description, status);
+        if (status.equals(NEW)) this.subtaskIds = new ArrayList<>();
     }
-
 
     public ArrayList<Integer> getSubtaskIds() {
         return subtaskIds;
@@ -50,6 +48,7 @@ public class Epic extends Task {
         } else {
             result += ", subtaskIds.size()='" + subtaskIds.size()+ '\'' + '}';
         }
+
         return result;
     }
 }

@@ -1,16 +1,12 @@
-package models;
+package taskModels;
 
 import java.util.Objects;
 
 public class Subtask extends Task {
-    private int epicId;
+    private final int epicId;
 
     public Subtask(String name, String description, int epicId, Status status) {
         super(name, description, status);
-        this.epicId = epicId;
-    }
-    public Subtask(String name, String description, int epicId) {
-        super(name, description);
         this.epicId = epicId;
     }
 
@@ -24,7 +20,8 @@ public class Subtask extends Task {
         if (object == null || getClass() != object.getClass()) return false;
         if (!super.equals(object)) return false;
         Subtask subtask = (Subtask) object;
-        return epicId == subtask.epicId;
+        return epicId == subtask.epicId &&
+                id == subtask.id;
     }
 
     @Override

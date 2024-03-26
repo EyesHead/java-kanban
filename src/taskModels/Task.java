@@ -1,4 +1,4 @@
-package models;
+package taskModels;
 import java.util.Objects;
 
 public class Task {
@@ -7,19 +7,11 @@ public class Task {
     protected int id;
     protected Status status;
 
-
-    public Task(String name, String description) {
-        this.name = name;
-        this.description = description;
-        this.status = Status.NEW;
-    }
     public Task(String name, String description, Status status) {
         this.name = name;
         this.description = description;
         this.status = status;
     }
-
-
 
     public int getId(){
         return id;
