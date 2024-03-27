@@ -2,16 +2,18 @@ package managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import taskModels.*;
-import managerInterfaces.*;
+import java.util.Map;
 
-import static taskModels.Status.*;
+import managers.interfaces.*;
+import models.*;
+
+import static models.Status.*;
 
 public class InMemoryTaskManager implements TaskManager {
     private int id = 0;
-    private final HashMap<Integer, Task> tasks = new HashMap<>();
-    private final HashMap<Integer, Epic> epics = new HashMap<>();
-    private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    private final Map<Integer, Task> tasks = new HashMap<>();
+    private final Map<Integer, Epic> epics = new HashMap<>();
+    private final Map<Integer, Subtask> subtasks = new HashMap<>();
     private final HistoryManager historyManager = new InMemoryHistoryManager();
 
 

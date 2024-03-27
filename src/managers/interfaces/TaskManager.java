@@ -1,9 +1,9 @@
-package managerInterfaces;
+package managers.interfaces;
 
 import managers.InMemoryTaskManager;
-import taskModels.Epic;
-import taskModels.Subtask;
-import taskModels.Task;
+import models.Epic;
+import models.Subtask;
+import models.Task;
 
 import java.util.ArrayList;
 

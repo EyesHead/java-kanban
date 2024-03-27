@@ -1,4 +1,4 @@
-package managerUtil;
+package managers.util;
 
 import managers.InMemoryHistoryManager;
 import managers.InMemoryTaskManager;

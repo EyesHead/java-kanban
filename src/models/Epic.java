@@ -1,9 +1,9 @@
-package taskModels;
+package models;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
-import static taskModels.Status.NEW;
+import static models.Status.NEW;
 
 public class Epic extends Task {
     private ArrayList<Integer> subtaskIds;

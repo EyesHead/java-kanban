@@ -1,9 +1,8 @@
-package test.models;
+package models;
 
-import taskModels.Task;
 import org.junit.jupiter.api.Test;
 
-import static taskModels.Status.*;
+import static models.Status.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TaskTest {

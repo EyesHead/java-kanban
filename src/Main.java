@@ -1,8 +1,8 @@
-import managerUtil.Managers;
+import managers.util.Managers;
 import managers.*;
-import taskModels.*;
+import models.*;
 
-import static taskModels.Status.*;
+import static models.Status.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -37,6 +37,15 @@ public class Main {
         taskManager.getTaskById(0);
         taskManager.getSubtaskById(4);
         taskManager.getEpicById(1);
+        taskManager.getEpicById(1);
+        taskManager.getEpicById(1);
+        taskManager.getEpicById(1);
+        taskManager.getEpicById(1);
+        taskManager.getSubtaskById(4);
+        taskManager.getSubtaskById(4);
+        taskManager.getSubtaskById(4);
+        taskManager.getEpicById(1);
+
 
         taskManager.printAllTasks(taskManager);
 

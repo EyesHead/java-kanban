@@ -1,14 +1,13 @@
-package test.managers;
+package managers;
 
-import managerUtil.Managers;
-import managers.InMemoryTaskManager;
+import managers.util.Managers;
 import org.junit.jupiter.api.Test;
-import taskModels.*;
+import models.*;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static taskModels.Status.*;
+import static models.Status.*;
 
 class InMemoryTaskManagerTest {
     static Managers managers = new Managers();
@@ -157,19 +156,6 @@ class InMemoryTaskManagerTest {
         assertEquals(0, taskManager.getSubtasks().size(), "Подзадачи не удалились из списка!");
         assertEquals(1, taskManager.getEpics().size(), "Эпики не должны удаляться!");
     }
-
-    @Test
-    void getTasks() {
-    }
-
-    @Test
-    void getEpics() {
-    }
-
-    @Test
-    void getSubtasks() {
-    }
-
     @Test
     void deleteTaskById() {
         taskManager.addTask(task1);// id = 0
@@ -177,13 +163,5 @@ class InMemoryTaskManagerTest {
         assertEquals(2, taskManager.getTasks().size(), "Задачи не были добавлены в список!");
         taskManager.deleteTaskById(task1.getId());
         assertNull(taskManager.getTaskById(0), "Задача всё ещё в списке!");
-    }
-
-    @Test
-    void deleteEpicById() {
-    }
-
-    @Test
-    void deleteSubtaskById() {
     }
 }
