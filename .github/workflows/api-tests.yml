@@ -6,4 +6,4 @@ on:
     
 jobs:
     build:
-        uses: yandex-praktikum/java-kanban/.github/workflows/api-tests.yml@ci
+        uses: EyesHead/java-kanban/.github/workflows/api-tests.yml@ci
