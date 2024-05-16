@@ -17,22 +17,27 @@ public class InMemoryHistoryManager implements HistoryManager {
             this.item = item;
         }
     }
-
-    HashMap<Integer, Node> history = new HashMap<>();
+    HashMap<Integer, Node> historyMap = new HashMap<>();
     Node head;
     Node tail;
 
 
     @Override
     public void add(Task task) {
-        Node node = history.get(task.getId());
-        removeNode(node);
+        if (task == null) return;
+
+        //удаляем задачу, если она есть в map
+        if (historyMap.containsKey(task.getId())) {
+            Node node = historyMap.get(task.getId());
+            removeNode(node);
+        }
+
         linkLast(task);
     }
 
     @Override
     public void remove(int id) {
-        Node node = history.get(id);
+        Node node = historyMap.get(id);
         removeNode(node);
     }
 
@@ -49,8 +54,8 @@ public class InMemoryHistoryManager implements HistoryManager {
         return list;
     }
 
-
-    void linkLast(Task task) {
+    //Добавление в связанный список (в конец)
+    private void linkLast(Task task) {
         final Node last = tail;
         final Node newNode = new Node(last, task, null);
         tail = newNode;
@@ -60,25 +65,29 @@ public class InMemoryHistoryManager implements HistoryManager {
             last.next = newNode;
         }
 
-        history.put(task.getId(), newNode);
+        historyMap.put(task.getId(), newNode);
     }
 
     //Удаление из связанного списка
     private void removeNode(Node current) {
-        if (current == null) {
-            return;
-        }
-        if (current.prev == null) {
+        // (head)CURRENT <-> nodeNext <-> ...   |   (head)nodeNext <-> ...
+        if (current.prev == null && current.next != null) {
             current.next.prev = null;
+            head = current.next;
         }
+
+        // (head)nodePrev <-> CURRENT <-> nodeNext(tail)    |   (head)nodePrev <-> nodeNext(tail)
         if (current.prev != null && current.next != null) {
             current.prev.next = current.next;
             current.next.prev = current.prev;
         }
-        if (current.next == null) {
+
+        // ... <-> nodePrev <-> CURRENT(tail)   |   ... <-> nodePrev(tail)
+        if (current.next == null && current.prev != null) {
             current.prev.next = null;
+            tail = current.prev;
         }
 
-        history.remove(current.item.getId());
+        historyMap.remove(current.item.getId());
     }
 }

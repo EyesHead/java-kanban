@@ -42,7 +42,9 @@ public interface TaskManager {
 
     void deleteSubtaskById(int subtaskId);
 
-    void printAllTasks(InMemoryTaskManager manager);
+    void printAllTasks();
+    void printAllEpicsSubtasks();
+    void printAllHistory();
 
 
 }
