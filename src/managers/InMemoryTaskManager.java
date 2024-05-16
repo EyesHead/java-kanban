@@ -184,7 +184,7 @@ public class InMemoryTaskManager implements TaskManager {
             System.out.println(subtask);
         }
         System.out.println("История:");
-        for (Task task : historyManager.getHistory()) {
+        for (Task task : historyManager.getAll()) {
             System.out.println(task);
         }
     }

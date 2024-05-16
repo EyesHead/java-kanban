@@ -154,7 +154,8 @@ class InMemoryTaskManagerTest {
 
         taskManager.deleteAllSubtasks();
         assertEquals(0, taskManager.getSubtasks().size(), "Подзадачи не удалились из списка!");
-        assertEquals(1, taskManager.getEpics().size(), "Эпики не должны удаляться!");
+        assertEquals(1, taskManager.getEpics().size(), "Эпики не должны удаляться, " +
+                "поскольку удаляются только подзадачи");
     }
     @Test
     void deleteTaskById() {
