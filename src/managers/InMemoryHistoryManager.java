@@ -2,7 +2,10 @@ package managers;
 
 import managers.interfaces.HistoryManager;
 import models.Task;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 //InMemoryHistoryManager реализует структуру LinkedHashMap
 public class InMemoryHistoryManager implements HistoryManager {
@@ -70,6 +73,8 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     //Удаление из связанного списка
     private void removeNode(Node current) {
+        if (current == null) return;
+
         // (head)CURRENT <-> nodeNext <-> ...   |   (head)nodeNext <-> ...
         if (current.prev == null && current.next != null) {
             current.next.prev = null;
@@ -86,6 +91,15 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (current.next == null && current.prev != null) {
             current.prev.next = null;
             tail = current.prev;
+        }
+
+        // null <-> CURRENT(tail + head) <-> null
+        if (current.next == null && current.prev == null) {
+            historyMap.remove(current.item.getId());
+            current = null;
+            tail = null;
+            head = null;
+            return;
         }
 
         historyMap.remove(current.item.getId());

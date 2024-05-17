@@ -1,28 +1,29 @@
 package managers;
 
+import managers.interfaces.TaskManager;
+import models.Epic;
+import models.Status;
+import models.Subtask;
+import models.Task;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import managers.interfaces.*;
-import models.*;
-
-import static models.Status.*;
+import static models.Status.DONE;
+import static models.Status.IN_PROGRESS;
 
 public class InMemoryTaskManager implements TaskManager {
     private int id = 0;
     private final Map<Integer, Task> tasks = new HashMap<>();
     private final Map<Integer, Epic> epics = new HashMap<>();
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
-    private final HistoryManager historyManager = new InMemoryHistoryManager();
+    private final InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
 
 
     @Override
     public Task getTaskById(int taskId){
-        Task savingTask = tasks.get(taskId);
-
-
-        historyManager.add(savingTask);
+        historyManager.add(tasks.get(taskId));
         return tasks.get(taskId);
     }
     @Override
@@ -172,11 +173,13 @@ public class InMemoryTaskManager implements TaskManager {
         ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
         subtaskIds.remove(subtask.getId());
         epic.setSubtaskIds(subtaskIds);
+
+        // обновляем эпик в map`е эпиков
         epics.put(epic.getId(), epic);
 
         // Потом удаляем саму подзадачу из таблицы подзадач
-        subtasks.remove(subtask.getId());
-        historyManager.remove(subtask.getId());
+        subtasks.remove(subtaskId);
+        historyManager.remove(subtaskId);
     }
 
 
@@ -220,7 +223,7 @@ public class InMemoryTaskManager implements TaskManager {
         return subtaskListByEpicId;
     }
 
-    public HistoryManager getHistoryManager() {
+    public InMemoryHistoryManager getHistoryManager() {
         return historyManager;
     }
 
@@ -234,7 +237,7 @@ public class InMemoryTaskManager implements TaskManager {
         Subtask subtask = subtasks.get(subtaskId);
         Epic epic = epics.get(subtask.getEpicId());
         ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
-        subtaskIds.add(subtask.getId());
+        subtaskIds.add(subtaskId);
         epic.setSubtaskIds(subtaskIds);
 
         return epic;

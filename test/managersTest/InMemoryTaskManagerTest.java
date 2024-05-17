@@ -1,13 +1,17 @@
-package managers;
+package managersTest;
 
+import managers.InMemoryTaskManager;
+import managers.interfaces.HistoryManager;
 import managers.util.Managers;
+import models.Epic;
+import models.Subtask;
+import models.Task;
 import org.junit.jupiter.api.Test;
-import models.*;
+
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static models.Status.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
     static Managers managers = new Managers();
@@ -22,6 +26,7 @@ class InMemoryTaskManagerTest {
             new Subtask("Подзадача 1", "Дизайн пользовательского интерфейса", epic.getId(), NEW);
     Subtask subtaskB =
             new Subtask("Подзадача 2", "Разработка пользовательских сценариев", epic.getId(), NEW);
+
 
 
     @Test
@@ -126,43 +131,121 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void deleteAllTasks() {
+    void deleteAllTasksAndCheckHistory() {
         taskManager.addTask(task1);
         taskManager.addTask(task2);
+        taskManager.getTaskById(task1.getId());
+        taskManager.getTaskById(task2.getId());
+        assertEquals(List.of(task1, task2), taskManager.getHistoryManager().getAll(),
+                "Задачи не добавились в историю просмотров");
+
         assertNotNull(taskManager.getTasks(), "Задач нет в списке!");
         taskManager.deleteAllTasks();
         assertEquals(0, taskManager.getTasks().size(), "Задачи не удалились из списка!");
+
+        assertEquals(0, taskManager.getHistoryManager().getAll().size(),
+                "Задачи не удалились из истории просмотров");
     }
 
     @Test
-    void deleteAllEpics() {
+    void deleteAllEpicsAndCheckHistory() {
         taskManager.addEpic(epic);
         taskManager.addSubtask(subtaskA);
         taskManager.addSubtask(subtaskB);
+
+        // Заполняем историю просмотров + получаем менеджер истории просмотров
+        taskManager.getEpicById(epic.getId());
+        taskManager.getSubtaskById(subtaskA.getId());
+        taskManager.getSubtaskById(subtaskB.getId());
+        assertEquals(List.of(epic, subtaskA, subtaskB), taskManager.getHistoryManager().getAll(),
+                "Задачи не были добавлены в историю просмотров");
+
         assertNotNull(taskManager.getEpics(), "Задач нет в списке!");
         assertNotNull(taskManager.getSubtasks(), "Подзадач нет в списке!");
+
         taskManager.deleteAllEpics();
-        assertEquals(0, taskManager.getEpics().size(), "Эпики не удалились из списка!");
-        assertEquals(0, taskManager.getSubtasks().size(), "Подзадачи не удалились из списка вместе с эпиками!");
+        assertEquals(0, taskManager.getEpics().size(),
+                "Эпики не удалились из списка!");
+        assertEquals(0, taskManager.getSubtasks().size(),
+                "Подзадачи не удалились из списка вместе с эпиками!");
+
+        assertEquals(0, taskManager.getHistoryManager().getAll().size(),
+                "Эпики с подзадачами не удалились из истории просмотров");
     }
 
     @Test
-    void deleteAllSubtasks() {
+    void deleteAllSubtasksAndCheckHistory() {
+
         taskManager.addEpic(epic);
         taskManager.addSubtask(subtaskA);
         taskManager.addSubtask(subtaskB);
 
+        // Заполняем историю просмотров + получаем менеджер истории просмотров
+        taskManager.getEpicById(epic.getId());
+        taskManager.getSubtaskById(subtaskA.getId());
+        taskManager.getSubtaskById(subtaskB.getId());
+        assertEquals(List.of(epic, subtaskA, subtaskB), taskManager.getHistoryManager().getAll(),
+                "Эпики с подзадачами не были добавлены в историю просмотров");
+
         taskManager.deleteAllSubtasks();
-        assertEquals(0, taskManager.getSubtasks().size(), "Подзадачи не удалились из списка!");
+        assertEquals(0, taskManager.getSubtasks().size(), "Подзадачи не удалились из map подзадач!");
         assertEquals(1, taskManager.getEpics().size(), "Эпики не должны удаляться, " +
                 "поскольку удаляются только подзадачи");
+
+        assertEquals(List.of(epic), taskManager.getHistoryManager().getAll(), "Подзадачи не удалились из истории просмотров");
     }
     @Test
-    void deleteTaskById() {
+    void deleteTaskByIdAndCheckHistory() {
         taskManager.addTask(task1);// id = 0
         taskManager.addTask(task2);// id = 1
+        taskManager.getTaskById(task1.getId());
+        taskManager.getTaskById(task2.getId());
+
+        HistoryManager historyManager = taskManager.getHistoryManager();
+        assertEquals(List.of(task1, task2), historyManager.getAll(),
+                "Задачи не были добавлены в историю просмотров");
+
+
         assertEquals(2, taskManager.getTasks().size(), "Задачи не были добавлены в список!");
         taskManager.deleteTaskById(task1.getId());
         assertNull(taskManager.getTaskById(0), "Задача всё ещё в списке!");
+
+        historyManager = taskManager.getHistoryManager();
+        assertEquals(List.of(task2), historyManager.getAll(),
+                "Задачи не были добавлены в историю просмотров");
+    }
+
+    @Test
+    void deleteSubtaskByIdAndCheckHistory() {
+        taskManager.addEpic(epic);// id = 0
+        taskManager.addSubtask(subtaskA);// id = 1
+        taskManager.addSubtask(subtaskB);// id = 2
+
+
+        //Подзадача должна удалиться из map подзадач и из списка id у эпика
+        assertEquals(2, taskManager.getSubtasks().size(), "Подзадачи не были добавлены в список!");
+
+
+        taskManager.deleteSubtaskById(1);
+        assertNull(taskManager.getSubtaskById(subtaskA.getId()), "Задача всё ещё в списке!");
+
+        assertEquals(1, epic.getSubtaskIds().size(), "Не может быть две подзадачи у эпика " +
+                "после удаления одной из них");
+    }
+
+    @Test
+    void deleteEpicByIdAndCheckHistory() {
+        // Эпик должен удалиться из map`ы эпиков
+        // Должны удалиться все подзадачи из map`ы подзадач
+        // Эпик должен удалиться из истории просмотров
+
+        taskManager.addEpic(epic);// id = 0
+        taskManager.addSubtask(subtaskA);// id = 1
+        taskManager.addSubtask(subtaskB);// id = 2
+        assertEquals(2, taskManager.getSubtasks().size(), "Подзадачи не добавлены в map подзадач");
+
+        taskManager.deleteEpicById(epic.getId());
+        assertEquals(0, taskManager.getSubtasks().size(), "Подзадачи не удалены из map подзадач");
+        assertEquals(0, taskManager.getEpics().size(), "Эпик все еще в map эпиков");
     }
 }
