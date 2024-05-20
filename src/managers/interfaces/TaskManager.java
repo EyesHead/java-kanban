@@ -1,6 +1,5 @@
 package managers.interfaces;
 
-import managers.InMemoryTaskManager;
 import models.Epic;
 import models.Subtask;
 import models.Task;
@@ -42,7 +41,9 @@ public interface TaskManager {
 
     void deleteSubtaskById(int subtaskId);
 
-    void printAllTasks(InMemoryTaskManager manager);
+    void printAllTasks();
+    void printAllEpicsSubtasks();
+    void printAllHistory();
 
 
 }

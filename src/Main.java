@@ -1,8 +1,10 @@
+import managers.InMemoryTaskManager;
 import managers.util.Managers;
-import managers.*;
-import models.*;
+import models.Epic;
+import models.Subtask;
+import models.Task;
 
-import static models.Status.*;
+import static models.Status.NEW;
 
 public class Main {
     public static void main(String[] args) {
@@ -14,41 +16,60 @@ public class Main {
 
         InMemoryTaskManager taskManager =  manager.getDefaultTasks();
 
-        Task task1 = new Task("Создание Мобильного Приложения", "Разработка интерфейса, " +
-                "Разработка пользовательских сценариев " +
-                "Создание прототипа приложения", NEW);
+        Task task1 = new Task("Имя Задачи1", "Описание задачи1", NEW);
         taskManager.addTask(task1);
-        Epic epic1 = new Epic("Разработка интерфейса", "Разделяется на 3 подзадачи", NEW);
+
+        Task task2 = new Task("Имя Задачи2", "Описание задачи2", NEW);
+        taskManager.addTask(task2);
+
+        Epic epic1 = new Epic("Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
         taskManager.addEpic(epic1);
-        Subtask subtask1point1 = new Subtask("Подзадача 1.1", "Дизайн пользовательского интерфейса", epic1.getId(), NEW);
-        Subtask subtask1point2 = new Subtask("Подзадача 1.2", "Разработка пользовательских сценариев", epic1.getId(), NEW);
-        Subtask subtask1point3 = new Subtask("Подзадача 1.3", "Создание прототипа приложения", epic1.getId(), NEW);
-        taskManager.addSubtask(subtask1point1);
-        taskManager.addSubtask(subtask1point2);
-        taskManager.addSubtask(subtask1point3);
-        Epic epic2 = new Epic("Реализация функционала","Разделяется на 2 подзадачи", NEW);
+        Subtask subtask1_1 = new Subtask("Подзадача 1.1", "Subtask1 for epic1", epic1.getId(), NEW);
+        Subtask subtask1_2 = new Subtask("Подзадача 1.2", "Subtask2 for epic1", epic1.getId(), NEW);
+        Subtask subtask1_3 = new Subtask("Подзадача 1.3", "Subtask3 for epic1", epic1.getId(), NEW);
+        taskManager.addSubtask(subtask1_1);
+        taskManager.addSubtask(subtask1_2);
+        taskManager.addSubtask(subtask1_3);
+
+
+        Epic epic2 = new Epic("Эпик без подзадач","Тут нет подзадач", NEW);
         taskManager.addEpic(epic2);
-        Subtask subtask2point1 = new Subtask("Подзадача 2.1", "Определение основных функций приложения", epic2.getId(), NEW);
-        Subtask subtask2point2 = new Subtask("Подзадача 2.2", "Разработка бэкенда приложения", epic2.getId(), NEW);
-        taskManager.addSubtask(subtask2point1);
-        taskManager.addSubtask(subtask2point2);
+
 
         //История просмотров
-        taskManager.getTaskById(0);
-        taskManager.getSubtaskById(4);
-        taskManager.getEpicById(1);
-        taskManager.getEpicById(1);
-        taskManager.getEpicById(1);
-        taskManager.getEpicById(1);
-        taskManager.getEpicById(1);
-        taskManager.getSubtaskById(4);
-        taskManager.getSubtaskById(4);
-        taskManager.getSubtaskById(4);
-        taskManager.getEpicById(1);
+        taskManager.getEpicById(epic1.getId());
+        taskManager.getEpicById(epic2.getId());
+        taskManager.printAllHistory();
 
+        System.out.println();
+        System.out.println("Добавим ещё задачи, в том числе дубликаты (их отобразиться не должно)");
+        taskManager.getTaskById(task1.getId());
+        taskManager.getEpicById(epic1.getId());
+        taskManager.getTaskById(task2.getId());
+        taskManager.getEpicById(epic2.getId());
+        taskManager.printAllHistory();
 
-        taskManager.printAllTasks(taskManager);
+        System.out.println();
+        System.out.println("Добавим ещё подзадачи, при чём по несколько раз одни и те же" +
+                ", дубликатов быть всё так же не может");
+        taskManager.getSubtaskById(subtask1_1.getId());
+        taskManager.getSubtaskById(subtask1_3.getId());
+        taskManager.getSubtaskById(subtask1_2.getId());
+        taskManager.getSubtaskById(subtask1_2.getId());
+        taskManager.getSubtaskById(subtask1_1.getId());
+        taskManager.getSubtaskById(subtask1_1.getId());
+        taskManager.getEpicById(epic1.getId());
+        taskManager.printAllHistory();
 
+        System.out.println();
+        System.out.println("Удаляю все обычные задачи через deleteAllTasks()");
+        taskManager.deleteAllTasks();
+        taskManager.printAllHistory();
+
+        System.out.println();
+        System.out.println("Удаляю эпик с тремя подзадачами через deleteEpicById()");
+        taskManager.deleteEpicById(epic1.getId());
+        taskManager.printAllHistory();
     }
 }
 
