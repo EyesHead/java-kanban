@@ -1,4 +1,4 @@
-package managers;
+package managers.memory_classes;
 
 import managers.interfaces.HistoryManager;
 import models.Task;

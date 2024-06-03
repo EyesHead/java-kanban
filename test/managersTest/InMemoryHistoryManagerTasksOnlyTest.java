@@ -1,8 +1,8 @@
 package managersTest;
 
-import managers.InMemoryHistoryManager;
-import managers.InMemoryTaskManager;
-import managers.util.Managers;
+import managers.memory_classes.InMemoryHistoryManager;
+import managers.memory_classes.InMemoryTaskManager;
+import managers.Managers;
 import models.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +13,7 @@ import static models.Status.NEW;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InMemoryHistoryManagerTasksOnlyTest {
-    static Managers managers = new Managers();
-    static InMemoryTaskManager taskManager = managers.getDefaultTasks();
+    static InMemoryTaskManager taskManager = Managers.getDefault();
 
     Task task1 =
             new Task("Задача1", "Описание задачи 1", NEW);

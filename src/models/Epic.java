@@ -13,13 +13,23 @@ public class Epic extends Task {
         if (status.equals(NEW)) this.subtaskIds = new ArrayList<>();
     }
 
+    public Epic(int id, String name, String description, Status status) {
+        super(id, name, description, status);
+        if (status.equals(NEW)) this.subtaskIds = new ArrayList<>();
+    }
+
     public ArrayList<Integer> getSubtaskIds() {
         return subtaskIds;
     }
+
     public void setSubtaskIds(ArrayList<Integer> subtaskIds) {
         this.subtaskIds = subtaskIds;
     }
 
+    @Override
+    public TaskType getType() {
+        return TaskType.EPIC;
+    }
 
     @Override
     public boolean equals(Object object) {
@@ -38,17 +48,6 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        String result = "Models.Epic{" +
-                        "name='" + name + '\'' +
-                        ", description='" + description + '\'' +
-                        ", id='" + id + '\'' +
-                        ", status='" + status + '\'';
-        if (subtaskIds.isEmpty()) {
-            result += ", subtaskIds is Empty" + '}';
-        } else {
-            result += ", subtaskIds.size()='" + subtaskIds.size()+ '\'' + '}';
-        }
-
-        return result;
+        return String.format("%d,%s,%s,%s,%s,%d\n", id, this.getType(), name, status, description, getEpicId());
     }
 }

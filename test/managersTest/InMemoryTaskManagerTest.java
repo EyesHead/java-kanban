@@ -1,8 +1,8 @@
 package managersTest;
 
-import managers.InMemoryTaskManager;
+import managers.memory_classes.InMemoryTaskManager;
 import managers.interfaces.HistoryManager;
-import managers.util.Managers;
+import managers.Managers;
 import models.Epic;
 import models.Subtask;
 import models.Task;
@@ -14,8 +14,7 @@ import static models.Status.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
-    static Managers managers = new Managers();
-    static InMemoryTaskManager taskManager =  managers.getDefaultTasks();
+    static InMemoryTaskManager taskManager =  Managers.getDefault();
     Task task1 =
             new Task("Создание Мобильного Приложения", "Разработка интерфейса", NEW);
     Task task2 =
@@ -102,14 +101,14 @@ class InMemoryTaskManagerTest {
         taskManager.addSubtask(subtaskA);
         taskManager.addSubtask(subtaskB);
         final List<Subtask> subtasksBeforeUpdate = taskManager.getSubtasks();
-        assertEquals(NEW, taskManager.getEpics().getFirst().getStatus(), "Статус эпика должен быть NEW");
-        assertEquals(NEW, subtasksBeforeUpdate.getFirst().getStatus(), "Статус подзадачи A должен быть NEW!");
+        assertEquals(NEW, taskManager.getEpics().getFirst().getStatus(),"Статус эпика должен быть NEW");
+        assertEquals(NEW, subtasksBeforeUpdate.getFirst().getStatus(),"Статус подзадачи A должен быть NEW!");
         assertEquals(NEW, subtasksBeforeUpdate.getLast().getStatus(), "Статус подзадачи B должен быть NEW!");
 
         // Обновляем статус подзадачи A на IN_PROGRESS => статус эпика меняется на IN_PROGRESS
         Subtask subtaskAInProgress = new Subtask("&!#!@#", "***", epic.getId(), IN_PROGRESS);
         subtaskAInProgress.setId(subtaskA.getId());
-        taskManager.updateEpicSubtask(subtaskAInProgress);
+        taskManager.updateSubtask(subtaskAInProgress);
 
         final List<Subtask> subtasksAfterFirstUpdate = taskManager.getSubtasks();
         assertEquals(IN_PROGRESS, taskManager.getEpics().getFirst().getStatus(), "Статус эпика после обновления должен быть IN_PROGRESS");
@@ -121,8 +120,8 @@ class InMemoryTaskManagerTest {
         Subtask subtaskBDone = new Subtask("Done B Subtask", "some description b", epic.getId(), DONE);
         subtaskADone.setId(subtaskA.getId());
         subtaskBDone.setId(subtaskB.getId());
-        taskManager.updateEpicSubtask(subtaskADone);
-        taskManager.updateEpicSubtask(subtaskBDone);
+        taskManager.updateSubtask(subtaskADone);
+        taskManager.updateSubtask(subtaskBDone);
         final List<Subtask> subtasksAfterSecondUpdate = taskManager.getSubtasks();
         assertEquals(DONE, taskManager.getEpics().get(epic.getId()).getStatus(), "Статус эпика после обновления должен быть DONE");
         assertEquals(DONE, subtasksAfterSecondUpdate.getFirst().getStatus(), "Статус подзадачи A должен быть DONE!");
