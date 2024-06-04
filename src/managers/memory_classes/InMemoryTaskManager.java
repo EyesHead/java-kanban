@@ -16,10 +16,10 @@ import static models.Status.IN_PROGRESS;
 
 public class InMemoryTaskManager implements TaskManager {
     protected int id = 0;
-    protected final Map<Integer, Task> tasks = new HashMap<>();
-    protected final Map<Integer, Epic> epics = new HashMap<>();
-    protected final Map<Integer, Subtask> subtasks = new HashMap<>();
-    protected InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
+    protected Map<Integer, Task> tasks = new HashMap<>();
+    protected Map<Integer, Epic> epics = new HashMap<>();
+    protected Map<Integer, Subtask> subtasks = new HashMap<>();
+    protected InMemoryHistoryManager historyManager;
 
     public InMemoryTaskManager() {
         historyManager = Managers.getDefaultHistory();
@@ -37,6 +37,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected void setId(int id) {
         this.id = id;
     }
+
     protected Epic addSubtaskIdAtEpic(int subtaskId) {
         Subtask subtask = subtasks.get(subtaskId);
         Epic epic = epics.get(subtask.getEpicId());
@@ -46,8 +47,6 @@ public class InMemoryTaskManager implements TaskManager {
 
         return epic;
     }
-
-
 
     @Override
     public Task getTaskById(int taskId){
@@ -125,7 +124,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-
     @Override
     public void deleteAllTasks() {
         for (int taskId : tasks.keySet()) historyManager.remove(taskId);
@@ -149,17 +147,23 @@ public class InMemoryTaskManager implements TaskManager {
         for (int subtaskId : subtasks.keySet()) historyManager.remove(subtaskId);
         subtasks.clear(); // очищаем таблицу подзадач
     }
+    @Override
+    public void clearAll() {
+        deleteAllTasks();
+        deleteAllEpics();
+        deleteAllSubtasks();
+    }
 
     @Override
-    public ArrayList<Task> getTasks() {
+    public ArrayList<Task> getTasksAsList() {
         return new ArrayList<>(tasks.values());
     }
     @Override
-    public ArrayList<Epic> getEpics() {
+    public ArrayList<Epic> getEpicsAsList() {
         return new ArrayList<>(epics.values());
     }
     @Override
-    public ArrayList<Subtask> getSubtasks() {
+    public ArrayList<Subtask> getSubtasksAsList() {
         return new ArrayList<>(subtasks.values());
     }
     @Override
@@ -221,23 +225,22 @@ public class InMemoryTaskManager implements TaskManager {
         historyManager.remove(subtaskId);
     }
 
-
     public void printAllTasks() {
         System.out.println("Задачи:");
-        for (Task task : getTasks()) {
+        for (Task task : getTasksAsList()) {
             System.out.println(task);
         }
     }
     public void printAllEpicsSubtasks(){
         System.out.println("Эпики:");
-        for (Epic epic : getEpics()) {
+        for (Epic epic : getEpicsAsList()) {
             System.out.println(epic);
             for (Subtask subtask : getSubtaskListByEpicId(epic.getId())) {
                 System.out.println("--> " + subtask);
             }
         }
         System.out.println("Подзадачи:");
-        for (Subtask subtask : getSubtasks()) {
+        for (Subtask subtask : getSubtasksAsList()) {
             System.out.println(subtask);
         }
     }
@@ -248,12 +251,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-
-
-
     // локальные методы
-
-
-
 
 }

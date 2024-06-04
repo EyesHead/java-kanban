@@ -2,10 +2,9 @@ package managers;
 
 import managers.memory_classes.FileBackedTaskManager;
 import managers.memory_classes.InMemoryHistoryManager;
-import managers.memory_classes.InMemoryTaskManager;
 
 public class Managers {
-    public static InMemoryTaskManager getDefault() {
+    public static FileBackedTaskManager getDefault() {
         return new FileBackedTaskManager(getDefaultHistory());
     }
 
