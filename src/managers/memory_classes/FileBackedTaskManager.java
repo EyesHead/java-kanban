@@ -49,12 +49,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 // Добавляем все задачи в таблицу
                 final Task task = fromString(line);
                 final int id = task.getId();
-                if (task.getType() == TASK) {
-                    tasks.put(id, task);
-                } else if (task.getType() == EPIC) {
-                    epics.put(id, (Epic) task);
-                } else if (task.getType() == SUBTASK) {
-                    subtasks.put(id, (Subtask) task);
+                switch (task.getType()) {
+                    case TASK:
+                        tasks.put(id, task);
+                    case EPIC:
+                        epics.put(id, (Epic) task);
+                    case SUBTASK:
+                        subtasks.put(id, (Subtask) task);
                 }
                 // Связываем подзадачи из таблицы со всеми эпиками
                 for (Subtask subtask : subtasks.values()) {

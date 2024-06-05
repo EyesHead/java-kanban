@@ -66,16 +66,19 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void addTask(Task task) {
+        if (task == null) return;
         task.setId(generateId());
         tasks.put(task.getId(), task);
     }
     @Override
     public void addEpic(Epic epic) {
+        if (epic == null) return;
         epic.setId(generateId());
         epics.put(epic.getId(), epic);
     }
     @Override
     public void addSubtask(Subtask subtask) {
+        if (subtask == null) return;
         subtask.setId(generateId());
         // 1. Добавляем подзадачу в таблицу подзадач
         subtasks.put(subtask.getId(), subtask);
@@ -94,10 +97,12 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task){
+        if (task == null) return;
         tasks.put(task.getId(), task);
     }
     @Override
     public void updateSubtask(Subtask subtask){
+        if (subtask == null) return;
         // 1. обновляем подзадачу в таблице subtasks
         subtasks.put(subtask.getId(), subtask);
         int epicId = subtask.getEpicId();
