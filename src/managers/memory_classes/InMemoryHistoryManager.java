@@ -1,4 +1,4 @@
-package managers;
+package managers.memory_classes;
 
 import managers.interfaces.HistoryManager;
 import models.Task;
@@ -96,7 +96,6 @@ public class InMemoryHistoryManager implements HistoryManager {
         // null <-> CURRENT(tail + head) <-> null
         if (current.next == null && current.prev == null) {
             historyMap.remove(current.item.getId());
-            current = null;
             tail = null;
             head = null;
             return;

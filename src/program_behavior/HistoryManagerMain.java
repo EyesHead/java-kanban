@@ -1,20 +1,21 @@
-import managers.InMemoryTaskManager;
-import managers.util.Managers;
+package program_behavior;
+
+import managers.memory_classes.InMemoryTaskManager;
+import managers.Managers;
 import models.Epic;
 import models.Subtask;
 import models.Task;
 
 import static models.Status.NEW;
 
-public class Main {
+public class HistoryManagerMain {
     public static void main(String[] args) {
         test();
     }
 
     private static void test() {
-        Managers manager = new Managers();
 
-        InMemoryTaskManager taskManager =  manager.getDefaultTasks();
+        InMemoryTaskManager taskManager =  Managers.getDefault();
 
         Task task1 = new Task("Имя Задачи1", "Описание задачи1", NEW);
         taskManager.addTask(task1);
@@ -64,11 +65,6 @@ public class Main {
         System.out.println();
         System.out.println("Удаляю все обычные задачи через deleteAllTasks()");
         taskManager.deleteAllTasks();
-        taskManager.printAllHistory();
-
-        System.out.println();
-        System.out.println("Удаляю эпик с тремя подзадачами через deleteEpicById()");
-        taskManager.deleteEpicById(epic1.getId());
         taskManager.printAllHistory();
     }
 }

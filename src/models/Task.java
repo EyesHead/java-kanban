@@ -13,6 +13,17 @@ public class Task {
         this.status = status;
     }
 
+    public Task(int id, String name, String description, Status status) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+    }
+
+    public Integer getEpicId() {
+        return null;
+    }
+
     public int getId(){
         return id;
     }
@@ -20,12 +31,23 @@ public class Task {
         this.id = id;
     }
 
+    public TaskType getType() {
+        return TaskType.TASK;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
     public Status getStatus() {
         return status;
     }
-
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -43,11 +65,6 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Models.Task{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", id='" + id + '\'' +
-                ", status='" + status + '\'' +
-                '}';
+        return String.format("%d,%s,%s,%s,%s,%d\n", id, this.getType(), name, status, description, getEpicId());
     }
 }

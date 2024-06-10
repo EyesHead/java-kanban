@@ -10,8 +10,19 @@ public class Subtask extends Task {
         this.epicId = epicId;
     }
 
-    public int getEpicId() {
+    public Subtask(int id, String name, String description,int epicId, Status status) {
+        super(id, name, description, status);
+        this.epicId = epicId;
+    }
+
+    @Override
+    public Integer getEpicId() {
         return epicId;
+    }
+
+    @Override
+    public TaskType getType() {
+        return TaskType.SUBTASK;
     }
 
     @Override
@@ -27,16 +38,5 @@ public class Subtask extends Task {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), epicId);
-    }
-
-    @Override
-    public String toString() {
-        return "Models.Subtask{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", id='" + id + '\'' +
-                ", epicId='" + epicId + '\'' +
-                ", status='" + status + '\'' +
-                '}';
     }
 }
