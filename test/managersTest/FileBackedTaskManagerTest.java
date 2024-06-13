@@ -29,9 +29,9 @@ public class FileBackedTaskManagerTest {
         //почти заполнили файл менеджер
         tempFile = File.createTempFile("taskTmp", ".csv");
         fileManager = new FileBackedTaskManager(Path.of(tempFile.getAbsolutePath()));
-        task1 = new Task("Создание Мобильного Приложения", "Разработка интерфейса", NEW);
-        task2 = new Task("Новая задача", "Описание новой задачи", NEW);
-        epic = new Epic("Разработка интерфейса", "Разделяется на 3 подзадачи", NEW);
+        task1 = new Task(0,"Создание Мобильного Приложения", "Разработка интерфейса", NEW);
+        task2 = new Task(0,"Новая задача", "Описание новой задачи", NEW);
+        epic = new Epic(0, "Разработка интерфейса", "Разделяется на 3 подзадачи", NEW);
         fileManager.addTask(task1);
         fileManager.addTask(task2);
         fileManager.addEpic(epic);
@@ -55,8 +55,8 @@ public class FileBackedTaskManagerTest {
 
     @Test
     public void saveNewTasksTest() {
-        subtaskA = new Subtask("Подзадача 1", "Дизайн пользовательского интерфейса", epic.getId(), NEW);
-        subtaskB = new Subtask("Подзадача 2", "Разработка пользовательских сценариев", epic.getId(), NEW);
+        subtaskA = new Subtask(0,"Подзадача 1", "Дизайн пользовательского интерфейса", epic.getId(), NEW);
+        subtaskB = new Subtask(0,"Подзадача 2", "Разработка пользовательских сценариев", epic.getId(), NEW);
         fileManager.addSubtask(subtaskA);
         fileManager.addSubtask(subtaskB);
 
@@ -65,8 +65,8 @@ public class FileBackedTaskManagerTest {
 
     @Test
     public void compareLoadedFileManagerFromFilledFileManagerTest() {
-        subtaskA = new Subtask("Подзадача 1", "Дизайн пользовательского интерфейса", epic.getId(), NEW);
-        subtaskB = new Subtask("Подзадача 2", "Разработка пользовательских сценариев", epic.getId(), NEW);
+        subtaskA = new Subtask(0, "Подзадача 1", "Дизайн пользовательского интерфейса", epic.getId(), NEW);
+        subtaskB = new Subtask(0, "Подзадача 2", "Разработка пользовательских сценариев", epic.getId(), NEW);
         fileManager.addSubtask(subtaskA);
         fileManager.addSubtask(subtaskB);
 

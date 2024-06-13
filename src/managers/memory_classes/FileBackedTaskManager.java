@@ -1,15 +1,13 @@
 package managers.memory_classes;
 
 import managers.Managers;
-import managers.custom_exceptions.ManagerSaveException;
+import managers.custom_exceptions.ManagerIOException;
 import models.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Map;
-
-import static models.TaskType.*;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private Path path;
@@ -64,7 +62,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 // Находим максимальный id
                 if (id > maxId) maxId = id;
             }
-            super.setId(maxId);
+            id = maxId;
         } catch (IOException e) {
             throw new RuntimeException("Ошибка при восстановлении менеджера из файла: " + e.getMessage());
         }
@@ -72,7 +70,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile(), StandardCharsets.UTF_8))) {
-            writer.write("id,type,name,status,description,epic(optional)\n");
+            writer.write("id,type,name,status,description,epic(optional),duration,startTime\n");
             for (Map.Entry<Integer,Task> taskEntry : tasks.entrySet()) {
                 writer.append(taskEntry.getValue().toString());
             }
@@ -83,7 +81,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 writer.append(subtaskEntry.getValue().toString());
             }
         } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка в файле: " + path.getFileName());
+            throw new ManagerIOException("Ошибка в файле: " + path.getFileName());
         }
     }
 
@@ -119,7 +117,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.addTask(task);
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время записи задачи");
         }
 
@@ -129,7 +127,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.addEpic(epic);
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время записи эпика");
         }
     }
@@ -138,7 +136,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.addSubtask(subtask);
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время записи подзадачи");
         }
     }
@@ -148,7 +146,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.updateTask(task);
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время обновления задачи");
         }
     }
@@ -157,7 +155,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.updateSubtask(subtask);
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время обновления подзадачи");
         }
     }
@@ -167,7 +165,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.deleteAllTasks();
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время удаления всех задач");
         }
     }
@@ -176,7 +174,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.deleteAllEpics();
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время удаления всех эпиков");
         }
     }
@@ -185,7 +183,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.deleteAllSubtasks();
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время удаления всех подзадач");
         }
     }
@@ -195,7 +193,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.deleteTaskById(taskId);
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время удаления задачи по id");
         }
     }
@@ -204,7 +202,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.deleteEpicById(epicId);
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время удаления эпика по id");
         }
     }
@@ -213,7 +211,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.deleteSubtaskById(subtaskId);
         try {
             save();
-        } catch (ManagerSaveException e) {
+        } catch (ManagerIOException e) {
             System.out.println("Ошибка во время удаления подзадачи по id");
         }
     }

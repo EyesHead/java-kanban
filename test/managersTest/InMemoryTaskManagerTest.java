@@ -20,7 +20,7 @@ class InMemoryTaskManagerTest {
     Task task2 =
             new Task("Новая задача", "Описание новой задачи", NEW);
     Epic epic =
-            new Epic("Разработка интерфейса", "Разделяется на 3 подзадачи", NEW);
+            new Epic("Разработка интерфейса", "Разделяется на 3 подзадачи");
     Subtask subtaskA =
             new Subtask("Подзадача 1", "Дизайн пользовательского интерфейса", epic.getId(), NEW);
     Subtask subtaskB =

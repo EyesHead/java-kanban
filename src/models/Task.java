@@ -1,38 +1,35 @@
 package models;
+import java.time.*;
 import java.util.Objects;
 
+
 public class Task {
-    protected String name;
-    protected String description;
-    protected int id;
+    private int id;
+    private final String name;
+    private final String description;
     protected Status status;
+    private final Duration duration;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
 
-    public Task(String name, String description, Status status) {
+
+    public Task(int id, String name, String description, Status status, LocalDateTime startTime, int durationMinutes) {
         this.name = name;
         this.description = description;
-        this.status = status;
-    }
-
-    public Task(int id, String name, String description, Status status) {
         this.id = id;
-        this.name = name;
-        this.description = description;
         this.status = status;
+        this.duration = Duration.ofMinutes(durationMinutes);
+        this.startTime = startTime;
+        this.endTime = startTime.plus(duration);
     }
 
-    public Integer getEpicId() {
-        return null;
-    }
 
     public int getId(){
         return id;
     }
-    public void setId(int id) {
-        this.id = id;
-    }
 
-    public TaskType getType() {
-        return TaskType.TASK;
+    public String getName() {
+        return name;
     }
 
     public String getDescription() {
@@ -42,12 +39,33 @@ public class Task {
     public Status getStatus() {
         return status;
     }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public int getDurationInMinutes() {
+        return (int) this.duration.toMinutes();
+    }
+
+    public TaskType getType() {
+        return TaskType.TASK;
+    }
+
+    public Integer getEpicId() {
+        return null;
+    }
+
     public void setStatus(Status status) {
         this.status = status;
     }
 
-    public String getName() {
-        return name;
+    public void setId(int id) {
+        this.id = id;
     }
 
     @Override
@@ -65,6 +83,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return String.format("%d,%s,%s,%s,%s,%d\n", id, this.getType(), name, status, description, getEpicId());
+        return String.format("%d,%s,%s,%s,%s,%d,%d,%s\n",
+                id, this.getType(), name, status, description, getEpicId(), getDurationInMinutes(), getStartTime());
     }
 }

@@ -31,13 +31,13 @@ public class FileManagerMain {
     private static FileBackedTaskManager getFileManager() throws IOException {
         FileBackedTaskManager fileManager = new FileBackedTaskManager();
 
-        Task task1 = new Task("Имя Задачи1", "Описание задачи1", NEW);
+        Task task1 = new Task(0,"Имя Задачи1", "Описание задачи1", NEW);
         fileManager.addTask(task1);
 
-        Task task2 = new Task("Имя Задачи2", "Описание задачи2", NEW);
+        Task task2 = new Task(0,"Имя Задачи2", "Описание задачи2", NEW);
         fileManager.addTask(task2);
 
-        Epic epic1 = new Epic("Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
+        Epic epic1 = new Epic(0, "Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
         fileManager.addEpic(epic1);
         Subtask subtask1_1 = new Subtask("Подзадача 1.1", "Subtask1 for epic1", epic1.getId(), NEW);
         Subtask subtask1_2 = new Subtask("Подзадача 1.2", "Subtask2 for epic1", epic1.getId(), IN_PROGRESS);

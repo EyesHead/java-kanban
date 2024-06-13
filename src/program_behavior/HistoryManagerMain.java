@@ -23,7 +23,7 @@ public class HistoryManagerMain {
         Task task2 = new Task("Имя Задачи2", "Описание задачи2", NEW);
         taskManager.addTask(task2);
 
-        Epic epic1 = new Epic("Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
+        Epic epic1 = new Epic("Эпик с тремя подзадачами", "Разделяется на 3 подзадачи");
         taskManager.addEpic(epic1);
         Subtask subtask1_1 = new Subtask("Подзадача 1.1", "Subtask1 for epic1", epic1.getId(), NEW);
         Subtask subtask1_2 = new Subtask("Подзадача 1.2", "Subtask2 for epic1", epic1.getId(), NEW);
@@ -33,7 +33,7 @@ public class HistoryManagerMain {
         taskManager.addSubtask(subtask1_3);
 
 
-        Epic epic2 = new Epic("Эпик без подзадач","Тут нет подзадач", NEW);
+        Epic epic2 = new Epic("Эпик без подзадач","Тут нет подзадач");
         taskManager.addEpic(epic2);
 
 
