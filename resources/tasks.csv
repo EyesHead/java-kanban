@@ -1,6 +1,0 @@
-id,type,name,status,description,epic(optional)
-2,EPIC,Эпик с тремя подзадачами,NEW,Разделяется на 3 подзадачи,null
-6,EPIC,Эпик без подзадач,NEW,Тут нет подзадач,null
-3,SUBTASK,Подзадача 1.1,NEW,Subtask1 for epic1,2
-4,SUBTASK,Подзадача 1.2,NEW,Subtask2 for epic1,2
-5,SUBTASK,Подзадача 1.3,NEW,Subtask3 for epic1,2

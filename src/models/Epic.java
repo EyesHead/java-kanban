@@ -2,6 +2,7 @@ package models;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -9,19 +10,29 @@ import java.util.Optional;
 
 public class Epic extends Task {
     private List<Subtask> subtasks = new ArrayList<>();
+    private LocalDateTime endTime = null;
 
+    //default constructor
+    public Epic(int id, String name, String description, Status status) {
+        super(id, name, description, status, null,
+                    0);
+    }
+
+    //constructor for loading epic from file
     public Epic(int id, String name, String description, Status status,
-                LocalDateTime startTime, int durationMinutes) {
-        super(id, name, description, status, startTime, durationMinutes);
+                LocalDateTime startTime, int minutesOfDuration) {
+        super(id, name, description, status, startTime,
+                minutesOfDuration);
+        endTime = getEndTime();
     }
 
     public void addTask(Subtask subtask) {
         if (subtasks.isEmpty()) {
-            super.startTime = subtask.startTime;
+            startTime = subtask.startTime;
             endTime = subtask.getEndTime();
         } else {
-            if (super.startTime.isAfter(subtask.startTime)) {
-                super.startTime = subtask.startTime;
+            if (startTime.isAfter(subtask.startTime)) {
+                startTime = subtask.startTime;
             }
             LocalDateTime subtaskEndTime = subtask.getEndTime();
             if (subtaskEndTime.isAfter(endTime)) {
@@ -29,7 +40,7 @@ public class Epic extends Task {
             }
         }
         subtasks.add(subtask);
-        super.duration = super.duration.plus(subtask.duration);
+        duration = duration.plus(subtask.duration);
     }
 
     @Override
@@ -38,7 +49,7 @@ public class Epic extends Task {
                 .map(Task::getStartTime)
                 .min(LocalDateTime::compareTo);
         // время начала самой ранней подзадачи
-        return startTime.orElseThrow(() -> new RuntimeException("Список задач у эпика пуст"));
+        return startTime.orElse(LocalDateTime.of(1970,1,1,0,0));
     }
 
     @Override
@@ -48,6 +59,14 @@ public class Epic extends Task {
                 .reduce(0, Integer::sum);
         // время начала самой ранней подзадачи + общая продолжительность всех подзадач
         return getStartTime().plusMinutes(duration);
+    }
+
+    @Override
+    public int getDurationInMinutes() {
+        if (subtasks.isEmpty()) {
+            return 0;
+        }
+        return (int) duration.toMinutes();
     }
 
     public List<Subtask> getSubtasks() {

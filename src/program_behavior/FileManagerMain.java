@@ -40,8 +40,7 @@ public class FileManagerMain {
                 LocalDateTime.of(2023, 2, 27, 2, 15), 200);
         fileManager.addTask(task2);
 
-        Epic epic1 = new Epic(0, "Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW,
-                LocalDateTime.now(), 50);
+        Epic epic1 = new Epic(0, "Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
         fileManager.addEpic(epic1);
 
         Subtask subtask1_1 = new Subtask(0,"Подзадача 1.1", "Subtask1 for epic1", NEW, epic1.getId(),

@@ -10,7 +10,6 @@ public class Task {
     protected Status status;
     protected Duration duration;
     protected LocalDateTime startTime;
-    protected LocalDateTime endTime;
 
 
     public Task(int id, String name, String description, Status status,
@@ -21,7 +20,6 @@ public class Task {
         this.status = status;
         this.duration = Duration.ofMinutes(durationMinutes);
         this.startTime = startTime;
-        this.endTime = startTime.plus(duration);
     }
 
 
@@ -46,7 +44,7 @@ public class Task {
     }
 
     public LocalDateTime getEndTime() {
-        return endTime;
+        return startTime.plus(duration);
     }
 
     public int getDurationInMinutes() {
@@ -67,6 +65,10 @@ public class Task {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public void setDuration(int minutes) {
+        this.duration = Duration.ofMinutes(minutes);
     }
 
     @Override

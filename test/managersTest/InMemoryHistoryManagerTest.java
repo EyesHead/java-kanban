@@ -7,20 +7,24 @@ import models.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static models.Status.NEW;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class InMemoryHistoryManagerTasksOnlyTest {
-    static InMemoryTaskManager taskManager = Managers.getDefault();
+public class InMemoryHistoryManagerTest {
+    static InMemoryTaskManager taskManager = Managers.getDefaultTaskManager();
 
     Task task1 =
-            new Task("Задача1", "Описание задачи 1", NEW);
+            new Task(0,"Задача1", "Описание задачи 1", NEW,
+                    LocalDateTime.now(), 50);
     Task task2 =
-            new Task("Задача2", "Описание задачи 2", NEW);
+            new Task(0,"Задача2", "Описание задачи 2", NEW,
+                    LocalDateTime.now(), 50);
     Task task3 =
-            new Task("Задача3", "Описание задачи 3", NEW);
+            new Task(0,"Задача3", "Описание задачи 3", NEW,
+                    LocalDateTime.now(), 50);
 
     @BeforeEach
     public void beforeEach() {

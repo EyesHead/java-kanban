@@ -1,5 +1,6 @@
-package models;
+package modelTest;
 
+import models.Epic;
 import org.junit.jupiter.api.Test;
 
 import static models.Status.NEW;
