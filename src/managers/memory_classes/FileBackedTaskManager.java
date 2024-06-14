@@ -51,12 +51,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 switch (task.getType()) {
                     case TASK:
                         tasks.put(id, task);
+                        prioritizedTasks.add(task);
                         continue;
                     case EPIC:
                         epics.put(id, (Epic) task);
                         continue;
                     case SUBTASK:
                         subtasks.put(id, (Subtask) task);
+                        prioritizedTasks.add(task);
                         continue;
                 }
                 // Связываем подзадачи из таблицы со всеми эпиками
@@ -72,6 +74,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } catch (IOException e) {
             throw new RuntimeException("Ошибка при восстановлении менеджера из файла: " + e.getMessage());
         }
+
+
     }
 
     private void save() {
@@ -228,6 +232,5 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             System.out.println("Ошибка во время удаления подзадачи по id");
         }
     }
-
 
 }

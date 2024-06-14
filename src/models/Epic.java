@@ -79,6 +79,7 @@ public class Epic extends Task {
 
     public void removeTask(Subtask subtask) {
         subtasks.remove(subtask);
+        updateEpicTime();
     }
 
     @Override
@@ -99,5 +100,10 @@ public class Epic extends Task {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), subtasks);
+    }
+
+    private void updateEpicTime() {
+        endTime = getEndTime();
+        startTime = getStartTime();
     }
 }

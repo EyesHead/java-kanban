@@ -24,28 +24,28 @@ public class HistoryManagerMain {
         FileBackedTaskManager taskManager =  Managers.getDefaultFileManager();
 
         Task task1 = new Task(0, "Имя Задачи1", "Описание задачи1", NEW,
-                LocalDateTime.of(getRandomDate(), getRandomTime()), 120);
+                LDTRandomizer.getRandomLDT(), 120);
         taskManager.addTask(task1);
 
         Task task2 = new Task(0,"Имя Задачи2", "Описание задачи2", NEW,
-                LocalDateTime.of(getRandomDate(), getRandomTime()), 60);
+                LDTRandomizer.getRandomLDT(), 60);
         taskManager.addTask(task2);
 
         Epic epic1 = new Epic(0,"Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
         taskManager.addEpic(epic1);
         Subtask subtask1_1 = new Subtask(0,"Подзадача 1.1", "Subtask1 for epic1", NEW, epic1.getId(),
-                LocalDateTime.of(getRandomDate(), getRandomTime()), 50);
+                LDTRandomizer.getRandomLDT(), 50);
         Subtask subtask1_2 = new Subtask(0,"Подзадача 1.2", "Subtask2 for epic1", NEW, epic1.getId(),
-                LocalDateTime.of(getRandomDate(), getRandomTime()), 20);
+                LDTRandomizer.getRandomLDT(), 20);
         Subtask subtask1_3 = new Subtask(0,"Подзадача 1.3", "Subtask3 for epic1", NEW, epic1.getId(),
-                LocalDateTime.of(getRandomDate(), getRandomTime()), 100);
+                LDTRandomizer.getRandomLDT(), 100);
         taskManager.addSubtask(subtask1_1);
         taskManager.addSubtask(subtask1_2);
         taskManager.addSubtask(subtask1_3);
 
 
         Epic epic2 = new Epic(0,"Эпик без подзадач","Тут нет подзадач", NEW,
-                LocalDateTime.of(getRandomDate(), getRandomTime()), 0);
+                LDTRandomizer.getRandomLDT(), 0);
         taskManager.addEpic(epic2);
 
 
@@ -78,17 +78,7 @@ public class HistoryManagerMain {
         System.out.println("Удаляю все обычные задачи через deleteAllTasks()");
         taskManager.deleteAllTasks();
         taskManager.printAllHistory();
-    }
 
-    private static LocalTime getRandomTime() {
-        return LocalTime.of((int) (Math.random() * 24), (int) (Math.random() * 60));
-
-    }
-
-    private static LocalDate getRandomDate() {
-        return LocalDate.of( (int) (Math.random() * 6) + 2020,
-                (int) (Math.random() * 11) + 1,
-                (int) (Math.random() * 27) + 1);
     }
 
 
