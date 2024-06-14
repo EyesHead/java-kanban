@@ -8,12 +8,13 @@ public class Task {
     private final String name;
     private final String description;
     protected Status status;
-    private final Duration duration;
-    private final LocalDateTime startTime;
-    private final LocalDateTime endTime;
+    protected Duration duration;
+    protected LocalDateTime startTime;
+    protected LocalDateTime endTime;
 
 
-    public Task(int id, String name, String description, Status status, LocalDateTime startTime, int durationMinutes) {
+    public Task(int id, String name, String description, Status status,
+                LocalDateTime startTime, int durationMinutes) {
         this.name = name;
         this.description = description;
         this.id = id;

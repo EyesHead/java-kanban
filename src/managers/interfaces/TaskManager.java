@@ -7,6 +7,7 @@ import models.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public interface TaskManager {
     //методы добавления
@@ -22,6 +23,8 @@ public interface TaskManager {
     //методы обновления
     void updateTask(Task task);
     void updateSubtask(Subtask subtask);
+
+    Set<Task> getPrioritizedTasks();
 
     //управление historyManager'ом
     Task getTaskById(int taskId);

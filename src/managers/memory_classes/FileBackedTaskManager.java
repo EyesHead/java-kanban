@@ -7,6 +7,7 @@ import models.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -57,7 +58,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
                 // Связываем подзадачи из таблицы со всеми эпиками
                 for (Subtask subtask : subtasks.values()) {
-                    addSubtaskIdAtEpic(subtask.getId());
+                    Epic epicToAdd = getEpicBySubtask(subtask);
+                    epicToAdd.addTask(subtask);
+                    epics.put(epicToAdd.getId(), epicToAdd);
                 }
                 // Находим максимальный id
                 if (id > maxId) maxId = id;
@@ -90,19 +93,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String[] taskData = line.split(","); // [id,type,name,status,description,epic]
 
         int id = Integer.parseInt(taskData[0]);
+        TaskType type = TaskType.valueOf(taskData[1]);
         String name = taskData[2];
         Status status = Status.valueOf(taskData[3]);
         String description = taskData[4];
-        TaskType type = TaskType.valueOf(taskData[1]);
+        int duration = Integer.parseInt(taskData[5]);
+        LocalDateTime dateTime = LocalDateTime.parse(taskData[6]);
+
 
         switch (type) {
             case TASK:
-                return new Task(id, name, description, status);
+                return new Task(id, name, description, status, dateTime, duration);
             case EPIC:
-                return new Epic(id, name, description, status);
+                return new Epic(id, name, description, status, dateTime, duration);
             case SUBTASK:
                 int epicId = Integer.parseInt(taskData[5]);
-                return new Subtask(id, name, description, epicId, status);
+                return new Subtask(id, name, description, status, epicId, dateTime, duration);
 
         }
         return null;
