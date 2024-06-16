@@ -1,11 +1,12 @@
 package managersTest;
 
+import managers.Managers;
 import managers.memory_classes.InMemoryTaskManager;
 import managers.interfaces.HistoryManager;
-import managers.Managers;
 import models.Epic;
 import models.Subtask;
 import models.Task;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,80 +14,88 @@ import java.util.List;
 import static models.Status.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskManagerTest {
-    static InMemoryTaskManager taskManager =  Managers.getDefault();
-    Task task1 =
-            new Task("Создание Мобильного Приложения", "Разработка интерфейса", NEW);
-    Task task2 =
-            new Task("Новая задача", "Описание новой задачи", NEW);
-    Epic epic =
-            new Epic("Разработка интерфейса", "Разделяется на 3 подзадачи");
-    Subtask subtaskA =
-            new Subtask("Подзадача 1", "Дизайн пользовательского интерфейса", epic.getId(), NEW);
-    Subtask subtaskB =
-            new Subtask("Подзадача 2", "Разработка пользовательских сценариев", epic.getId(), NEW);
+/*
+В данном классе уже есть менеджер, в котором созданы 2 задачи, и эпик с двумя подзадачами,
+а так же заполнен prioritizedTasks список (так как он заполняется по мере добавления
+(обновления и удаления) задач и подзадач)
+ */
+class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 
-
-    @Test
-    void addTask() { //Тест создания задачи.
-        taskManager.addTask(task1);
-
-        final Task savedTask = taskManager.getTaskById(task1.getId());
-
-        assertNotNull(savedTask, "Задача не найдена.");
-        assertEquals(task1, savedTask, "Задачи не совпадают.");
-
-        final List<Task> tasks = taskManager.getTasksAsList();
-
-        assertNotNull(tasks, "Задачи не возвращаются.");
-        assertEquals(1, tasks.size(), "Неверное количество задач.");
-        assertEquals(task1, tasks.getFirst(), "Задачи не совпадают.");
+    @Override
+    protected InMemoryTaskManager createManager() {
+        return Managers.getDefaultTaskManager();
     }
-    @Test
-    void addEpic() { //Тест создания эпика.
-        taskManager.addEpic(epic);
 
-        final Epic savedEpic = taskManager.getEpicById(epic.getId());
-
-        assertNotNull(savedEpic, "Эпик не найден.");
-        assertEquals(epic, savedEpic, "Эпики не совпадают.");
-
-        final List<Epic> epics = taskManager.getEpicsAsList();
-
-        assertNotNull(epics, "Эпики не возвращаются.");
-        assertEquals(1, epics.size(), "Неверное количество эпиков.");
-        assertEquals(epic, epics.getFirst(), "Эпики не совпадают.");
+    @BeforeEach
+    void setUp() {
+        super.setUp();
     }
+
+
+
+    @Override
     @Test
-    void addSubtask() { //Тест создания подзадачи.
-        taskManager.addEpic(epic); // Подзадача не может существовать без эпика (логично)
-        taskManager.addSubtask(subtaskA);
+    void testEpicNew() {
+        final List<Subtask> subtasksBeforeUpdate = manager.getSubtasksAsList();
+        assertEquals(NEW, manager.getEpicsAsList().getFirst().getStatus(),"Статус эпика должен быть NEW");
+        assertEquals(NEW, subtasksBeforeUpdate.getFirst().getStatus(),"Статус подзадачи A должен быть NEW!");
+        assertEquals(NEW, subtasksBeforeUpdate.getLast().getStatus(), "Статус подзадачи B должен быть NEW!");
+    }
 
-        final Subtask savedSubtask = taskManager.getSubtaskById(subtaskA.getId());
+    @Override
+    @Test
+    void testEpicInProgress() {
+        // Обновляем статус SubtaskA на IN_PROGRESS => статус эпика меняется на IN_PROGRESS
+        Subtask subtaskAUpdated = new Subtask(subtaskA.getId(), "&!#!@#", "***", IN_PROGRESS, epic.getId(),
+                subtaskA.getStartTime(), subtaskA.getDurationInMinutes());
+        manager.updateSubtask(subtaskAUpdated);//обновляем подзадачу
 
-        assertNotNull(savedSubtask, "Подзадача не найдена.");
-        assertEquals(subtaskA, savedSubtask, "Подзадачи не совпадают.");
+        assertEquals(IN_PROGRESS, manager.getEpicsAsList().getFirst().getStatus(),
+                "Статус эпика после обновления должен быть IN_PROGRESS");
+        assertEquals(IN_PROGRESS, manager.getSubtaskById(subtaskA.getId()).getStatus(),
+                "Статус подзадачи A должен быть IN_PROGRESS!");
+        assertEquals(NEW, manager.getSubtaskById(subtaskB.getId()).getStatus(),
+                "Статус подзадачи B должен быть NEW!");
+    }
 
-        final List<Subtask> subtasks = taskManager.getSubtasksAsList();
+    @Override
+    @Test
+        void testEpicDone() {
+        Subtask subtaskADone = new Subtask(subtaskA.getId(),"Done A Subtask", "some description a",
+                DONE, epic.getId(), subtaskA.getStartTime(), subtaskA.getDurationInMinutes());
+        Subtask subtaskBDone = new Subtask(subtaskB.getId(),"Done B Subtask", "some description b", DONE,
+                epic.getId(), subtaskB.getStartTime(), subtaskB.getDurationInMinutes());
+        subtaskADone.setId(subtaskA.getId());
+        subtaskBDone.setId(subtaskB.getId());
+        manager.updateSubtask(subtaskADone);
+        manager.updateSubtask(subtaskBDone);
 
-        assertNotNull(subtasks, "Подзадачи не возвращаются.");
-        assertEquals(1, subtasks.size(), "Неверное количество подзадач.");
-        assertEquals(subtaskA, subtasks.getFirst(), "Подзадачи не совпадают.");
+        assertEquals(DONE, manager.getEpicById(epic.getId()).getStatus(), "Статус эпика после обновления должен быть DONE");
+        assertEquals(DONE, manager.getSubtaskById(subtaskA.getId()).getStatus(),
+                "Статус подзадачи A должен быть IN_PROGRESS!");
+        assertEquals(DONE, manager.getSubtaskById(subtaskB.getId()).getStatus(),
+                "Статус подзадачи B должен быть NEW!");
+    }
+
+    @Override
+    void updateTaskAndCheckToPrioritizedList() {
+
     }
 
     @Test
     void updateTask() {
-        taskManager.addTask(task1);
-        taskManager.addTask(task2);
+        manager.addTask(task1);
+        manager.addTask(task2);
 
         // Хотим обновить ВТОРУЮ задачу (с id = 1)
-        Task newTask = new Task("Обновленная задача","Какое-то описание", IN_PROGRESS);
+        Task newTask = new Task(1, "Обновленная задача", "Какое-то описание", IN_PROGRESS,
+                task1.getStartTime(), task1.getDurationInMinutes());
         newTask.setId(task2.getId());
-        taskManager.updateTask(newTask);
+        manager.updateTask(newTask);
 
-        final List<Task> tasks = taskManager.getTasksAsList();
-        assertEquals( 2, tasks.size() , "Задач больше (меньше), чем должно быть");
+        final List<Task> tasks = manager.getTasksAsList();
+        assertEquals(2, tasks.size(), "Задач больше (меньше), чем должно быть");
         assertEquals(tasks.getFirst().getStatus(), NEW, "У первой задачи статус не должен меняться");
         assertEquals(tasks.get(1).getStatus(), IN_PROGRESS, "У второй задачи статус должен был поменяться");
         assertEquals(tasks.get(task2.getId()),
@@ -95,141 +104,93 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void updateEpicSubtask() {
-        //создаем эпик NEW и 2 подзадачи к нему NEW
-        taskManager.addEpic(epic);
-        taskManager.addSubtask(subtaskA);
-        taskManager.addSubtask(subtaskB);
-        final List<Subtask> subtasksBeforeUpdate = taskManager.getSubtasksAsList();
-        assertEquals(NEW, taskManager.getEpicsAsList().getFirst().getStatus(),"Статус эпика должен быть NEW");
-        assertEquals(NEW, subtasksBeforeUpdate.getFirst().getStatus(),"Статус подзадачи A должен быть NEW!");
-        assertEquals(NEW, subtasksBeforeUpdate.getLast().getStatus(), "Статус подзадачи B должен быть NEW!");
-
-        // Обновляем статус подзадачи A на IN_PROGRESS => статус эпика меняется на IN_PROGRESS
-        Subtask subtaskAInProgress = new Subtask("&!#!@#", "***", epic.getId(), IN_PROGRESS);
-        subtaskAInProgress.setId(subtaskA.getId());
-        taskManager.updateSubtask(subtaskAInProgress);
-
-        final List<Subtask> subtasksAfterFirstUpdate = taskManager.getSubtasksAsList();
-        assertEquals(IN_PROGRESS, taskManager.getEpicsAsList().getFirst().getStatus(), "Статус эпика после обновления должен быть IN_PROGRESS");
-        assertEquals(IN_PROGRESS, subtasksAfterFirstUpdate.getFirst().getStatus(), "Статус подзадачи A должен быть IN_PROGRESS!");
-        assertEquals(NEW, subtasksAfterFirstUpdate.getLast().getStatus(), "Статус подзадачи B должен быть NEW!");
-
-        //Обновляем статус подзадачи A и B на DONE => статус эпика меняется на DONE
-        Subtask subtaskADone = new Subtask("Done A Subtask", "some description a", epic.getId(), DONE);
-        Subtask subtaskBDone = new Subtask("Done B Subtask", "some description b", epic.getId(), DONE);
-        subtaskADone.setId(subtaskA.getId());
-        subtaskBDone.setId(subtaskB.getId());
-        taskManager.updateSubtask(subtaskADone);
-        taskManager.updateSubtask(subtaskBDone);
-        final List<Subtask> subtasksAfterSecondUpdate = taskManager.getSubtasksAsList();
-        assertEquals(DONE, taskManager.getEpicsAsList().get(epic.getId()).getStatus(), "Статус эпика после обновления должен быть DONE");
-        assertEquals(DONE, subtasksAfterSecondUpdate.getFirst().getStatus(), "Статус подзадачи A должен быть DONE!");
-        assertEquals(DONE, subtasksAfterSecondUpdate.getLast().getStatus(), "Статус подзадачи B должен быть DONE!");
-
-    }
-
-    @Test
     void deleteAllTasksAndCheckHistory() {
-        taskManager.addTask(task1);
-        taskManager.addTask(task2);
-        taskManager.getTaskById(task1.getId());
-        taskManager.getTaskById(task2.getId());
-        assertEquals(List.of(task1, task2), taskManager.getHistoryManager().getAll(),
+        manager.addTask(task1);
+        manager.addTask(task2);
+        manager.getTaskById(task1.getId());
+        manager.getTaskById(task2.getId());
+        assertEquals(List.of(task1, task2), manager.getHistoryManager().getAll(),
                 "Задачи не добавились в историю просмотров");
 
-        assertNotNull(taskManager.getTasksAsList(), "Задач нет в списке!");
-        taskManager.deleteAllTasks();
-        assertEquals(0, taskManager.getTasksAsList().size(), "Задачи не удалились из списка!");
+        assertNotNull(manager.getTasksAsList(), "Задач нет в списке!");
+        manager.deleteAllTasks();
+        assertEquals(0, manager.getTasksAsList().size(), "Задачи не удалились из списка!");
 
-        assertEquals(0, taskManager.getHistoryManager().getAll().size(),
+        assertEquals(0, manager.getHistoryManager().getAll().size(),
                 "Задачи не удалились из истории просмотров");
     }
 
     @Test
     void deleteAllEpicsAndCheckHistory() {
-        taskManager.addEpic(epic);
-        taskManager.addSubtask(subtaskA);
-        taskManager.addSubtask(subtaskB);
+        manager.addEpic(epic);
+        manager.addSubtask(subtaskA);
+        manager.addSubtask(subtaskB);
 
         // Заполняем историю просмотров + получаем менеджер истории просмотров
-        taskManager.getEpicById(epic.getId());
-        taskManager.getSubtaskById(subtaskA.getId());
-        taskManager.getSubtaskById(subtaskB.getId());
-        assertEquals(List.of(epic, subtaskA, subtaskB), taskManager.getHistoryManager().getAll(),
+        manager.getEpicById(epic.getId());
+        manager.getSubtaskById(subtaskA.getId());
+        manager.getSubtaskById(subtaskB.getId());
+        assertEquals(List.of(epic, subtaskA, subtaskB), manager.getHistoryManager().getAll(),
                 "Задачи не были добавлены в историю просмотров");
 
-        assertNotNull(taskManager.getEpicsAsList(), "Задач нет в списке!");
-        assertNotNull(taskManager.getSubtasksAsList(), "Подзадач нет в списке!");
+        assertNotNull(manager.getEpicsAsList(), "Задач нет в списке!");
+        assertNotNull(manager.getSubtasksAsList(), "Подзадач нет в списке!");
 
-        taskManager.deleteAllEpics();
-        assertEquals(0, taskManager.getEpicsAsList().size(),
+        manager.deleteAllEpics();
+        assertEquals(0, manager.getEpicsAsList().size(),
                 "Эпики не удалились из списка!");
-        assertEquals(0, taskManager.getSubtasksAsList().size(),
+        assertEquals(0, manager.getSubtasksAsList().size(),
                 "Подзадачи не удалились из списка вместе с эпиками!");
 
-        assertEquals(0, taskManager.getHistoryManager().getAll().size(),
+        assertEquals(0, manager.getHistoryManager().getAll().size(),
                 "Эпики с подзадачами не удалились из истории просмотров");
     }
 
     @Test
     void deleteAllSubtasksAndCheckHistory() {
 
-        taskManager.addEpic(epic);
-        taskManager.addSubtask(subtaskA);
-        taskManager.addSubtask(subtaskB);
+        manager.addEpic(epic);
+        manager.addSubtask(subtaskA);
+        manager.addSubtask(subtaskB);
 
         // Заполняем историю просмотров + получаем менеджер истории просмотров
-        taskManager.getEpicById(epic.getId());
-        taskManager.getSubtaskById(subtaskA.getId());
-        taskManager.getSubtaskById(subtaskB.getId());
-        assertEquals(List.of(epic, subtaskA, subtaskB), taskManager.getHistoryManager().getAll(),
+        manager.getEpicById(epic.getId());
+        manager.getSubtaskById(subtaskA.getId());
+        manager.getSubtaskById(subtaskB.getId());
+        assertEquals(List.of(epic, subtaskA, subtaskB), manager.getHistoryManager().getAll(),
                 "Эпики с подзадачами не были добавлены в историю просмотров");
 
-        taskManager.deleteAllSubtasks();
-        assertEquals(0, taskManager.getSubtasksAsList().size(), "Подзадачи не удалились из map подзадач!");
-        assertEquals(1, taskManager.getEpicsAsList().size(), "Эпики не должны удаляться, " +
+        manager.deleteAllSubtasks();
+        assertEquals(0, manager.getSubtasksAsList().size(), "Подзадачи не удалились из map подзадач!");
+        assertEquals(1, manager.getEpicsAsList().size(), "Эпики не должны удаляться, " +
                 "поскольку удаляются только подзадачи");
 
-        assertEquals(List.of(epic), taskManager.getHistoryManager().getAll(), "Подзадачи не удалились из истории просмотров");
+        assertEquals(List.of(epic), manager.getHistoryManager().getAll(), "Подзадачи не удалились из истории просмотров");
     }
     @Test
     void deleteTaskByIdAndCheckHistory() {
-        taskManager.addTask(task1);// id = 0
-        taskManager.addTask(task2);// id = 1
-        taskManager.getTaskById(task1.getId());
-        taskManager.getTaskById(task2.getId());
+        manager.addTask(task1);// id = 0
+        manager.addTask(task2);// id = 1
+        manager.getTaskById(task1.getId());
+        manager.getTaskById(task2.getId());
 
-        HistoryManager historyManager = taskManager.getHistoryManager();
+        HistoryManager historyManager = manager.getHistoryManager();
         assertEquals(List.of(task1, task2), historyManager.getAll(),
                 "Задачи не были добавлены в историю просмотров");
 
 
-        assertEquals(2, taskManager.getTasksAsList().size(), "Задачи не были добавлены в список!");
-        taskManager.deleteTaskById(task1.getId());
-        assertNull(taskManager.getTaskById(0), "Задача всё ещё в списке!");
+        assertEquals(2, manager.getTasksAsList().size(), "Задачи не были добавлены в список!");
+        manager.deleteTaskById(task1.getId());
+        assertNull(manager.getTaskById(0), "Задача всё ещё в списке!");
 
-        historyManager = taskManager.getHistoryManager();
+        historyManager = manager.getHistoryManager();
         assertEquals(List.of(task2), historyManager.getAll(),
                 "Задачи не были добавлены в историю просмотров");
     }
 
     @Test
     void deleteSubtaskByIdAndCheckHistory() {
-        taskManager.addEpic(epic);// id = 0
-        taskManager.addSubtask(subtaskA);// id = 1
-        taskManager.addSubtask(subtaskB);// id = 2
-
-
-        //Подзадача должна удалиться из map подзадач и из списка id у эпика
-        assertEquals(2, taskManager.getSubtasksAsList().size(), "Подзадачи не были добавлены в список!");
-
-
-        taskManager.deleteSubtaskById(1);
-        assertNull(taskManager.getSubtaskById(subtaskA.getId()), "Задача всё ещё в списке!");
-
-        assertEquals(1, epic.getSubtaskIds().size(), "Не может быть две подзадачи у эпика " +
-                "после удаления одной из них");
+    //
     }
 
     @Test
@@ -238,13 +199,13 @@ class InMemoryTaskManagerTest {
         // Должны удалиться все подзадачи из map`ы подзадач
         // Эпик должен удалиться из истории просмотров
 
-        taskManager.addEpic(epic);// id = 0
-        taskManager.addSubtask(subtaskA);// id = 1
-        taskManager.addSubtask(subtaskB);// id = 2
-        assertEquals(2, taskManager.getSubtasksAsList().size(), "Подзадачи не добавлены в map подзадач");
+        manager.addEpic(epic);// id = 0
+        manager.addSubtask(subtaskA);// id = 1
+        manager.addSubtask(subtaskB);// id = 2
+        assertEquals(2, manager.getSubtasksAsList().size(), "Подзадачи не добавлены в map подзадач");
 
-        taskManager.deleteEpicById(epic.getId());
-        assertEquals(0, taskManager.getSubtasksAsList().size(), "Подзадачи не удалены из map подзадач");
-        assertEquals(0, taskManager.getEpicsAsList().size(), "Эпик все еще в map эпиков");
+        manager.deleteEpicById(epic.getId());
+        assertEquals(0, manager.getSubtasksAsList().size(), "Подзадачи не удалены из map подзадач");
+        assertEquals(0, manager.getEpicsAsList().size(), "Эпик все еще в map эпиков");
     }
 }

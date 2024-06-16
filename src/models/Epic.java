@@ -2,23 +2,25 @@ package models;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 public class Epic extends Task {
+    private final LocalDateTime DEFAULT_START_TIME =
+            LocalDateTime.of(9999999,1,1,0,0);
+    private final LocalDateTime DEFAULT_END_TIME =
+            LocalDateTime.of(9999999,12,31,23,59);
     private List<Subtask> subtasks = new ArrayList<>();
     private LocalDateTime endTime = null;
 
-    //default constructor
-    public Epic(int id, String name, String description, Status status) {
-        super(id, name, description, status, null,
-                    0);
+    //Конструктор создания нового эпика
+    public Epic(String name, String description, Status status) {
+        super(0, name, description, status, null, 0);
     }
 
-    //constructor for loading epic from file
+    //Конструктор для загрузки эпика из файла в менеджер (нужен параметр id)
     public Epic(int id, String name, String description, Status status,
                 LocalDateTime startTime, int minutesOfDuration) {
         super(id, name, description, status, startTime,
@@ -27,20 +29,28 @@ public class Epic extends Task {
     }
 
     public void addTask(Subtask subtask) {
-        if (subtasks.isEmpty()) {
-            startTime = subtask.startTime;
-            endTime = subtask.getEndTime();
-        } else {
-            if (startTime.isAfter(subtask.startTime)) {
-                startTime = subtask.startTime;
-            }
-            LocalDateTime subtaskEndTime = subtask.getEndTime();
-            if (subtaskEndTime.isAfter(endTime)) {
-                endTime = subtaskEndTime;
-            }
-        }
         subtasks.add(subtask);
         duration = duration.plus(subtask.duration);
+        updateTime();
+        updateStatus();
+    }
+
+    public void removeTask(Subtask subtask) {
+        subtasks.remove(subtask);
+        if (subtasks.isEmpty()) {
+            duration = Duration.ofMinutes(0);
+        }
+        duration = duration.minus(subtask.duration);
+        updateTime();
+        updateStatus();
+    }
+
+    public void setSubtasks(List<Subtask> subtasks) {
+        this.subtasks = subtasks;
+    }
+
+    public List<Subtask> getSubtasks() {
+        return subtasks;
     }
 
     @Override
@@ -49,16 +59,16 @@ public class Epic extends Task {
                 .map(Task::getStartTime)
                 .min(LocalDateTime::compareTo);
         // время начала самой ранней подзадачи
-        return startTime.orElse(LocalDateTime.of(1970,1,1,0,0));
+        return startTime.orElse(LocalDateTime.of(9999999,1,1,0,0));
     }
 
     @Override
     public LocalDateTime getEndTime() {
-        int duration = subtasks.stream()
-                .map(Task::getDurationInMinutes)
-                .reduce(0, Integer::sum);
-        // время начала самой ранней подзадачи + общая продолжительность всех подзадач
-        return getStartTime().plusMinutes(duration);
+        Optional<LocalDateTime> endTime = subtasks.stream()
+                .map(Task::getEndTime)
+                .max(LocalDateTime::compareTo);
+        // время начала самой ранней подзадачи
+        return endTime.orElse(LocalDateTime.of(9999999,12,31,23,59));
     }
 
     @Override
@@ -67,19 +77,6 @@ public class Epic extends Task {
             return 0;
         }
         return (int) duration.toMinutes();
-    }
-
-    public List<Subtask> getSubtasks() {
-        return subtasks;
-    }
-
-    public void setSubtasks(List<Subtask> subtasks) {
-        this.subtasks = subtasks;
-    }
-
-    public void removeTask(Subtask subtask) {
-        subtasks.remove(subtask);
-        updateEpicTime();
     }
 
     @Override
@@ -102,8 +99,21 @@ public class Epic extends Task {
         return Objects.hash(super.hashCode(), subtasks);
     }
 
-    private void updateEpicTime() {
-        endTime = getEndTime();
-        startTime = getStartTime();
+    private void updateTime() {
+        this.startTime = getStartTime();
+        this.endTime = getEndTime();
+    }
+
+    private void updateStatus() {
+        boolean allCompleted = subtasks.stream().allMatch(subtask -> subtask.getStatus() == Status.DONE);
+        boolean anyInProgress = subtasks.stream().anyMatch(subtask -> subtask.getStatus() == Status.IN_PROGRESS);
+
+        if (allCompleted) {
+            this.status = Status.DONE;
+        } else if (anyInProgress) {
+            this.status = Status.IN_PROGRESS;
+        } else {
+            this.status = Status.NEW;
+        }
     }
 }

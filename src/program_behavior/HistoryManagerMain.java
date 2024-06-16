@@ -23,15 +23,15 @@ public class HistoryManagerMain {
     private static void test() {
         FileBackedTaskManager taskManager =  Managers.getDefaultFileManager();
 
-        Task task1 = new Task(0, "Имя Задачи1", "Описание задачи1", NEW,
+        Task task1 = new Task("Имя Задачи1", "Описание задачи1", NEW,
                 LDTRandomizer.getRandomLDT(), 120);
         taskManager.addTask(task1);
 
-        Task task2 = new Task(0,"Имя Задачи2", "Описание задачи2", NEW,
+        Task task2 = new Task("Имя Задачи2", "Описание задачи2", NEW,
                 LDTRandomizer.getRandomLDT(), 60);
         taskManager.addTask(task2);
 
-        Epic epic1 = new Epic(0,"Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
+        Epic epic1 = new Epic("Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
         taskManager.addEpic(epic1);
         Subtask subtask1_1 = new Subtask(0,"Подзадача 1.1", "Subtask1 for epic1", NEW, epic1.getId(),
                 LDTRandomizer.getRandomLDT(), 50);
@@ -44,8 +44,7 @@ public class HistoryManagerMain {
         taskManager.addSubtask(subtask1_3);
 
 
-        Epic epic2 = new Epic(0,"Эпик без подзадач","Тут нет подзадач", NEW,
-                LDTRandomizer.getRandomLDT(), 0);
+        Epic epic2 = new Epic("Эпик без подзадач","Тут нет подзадач", NEW);
         taskManager.addEpic(epic2);
 
 
