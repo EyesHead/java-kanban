@@ -8,16 +8,15 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class Epic extends Task {
-    private final LocalDateTime DEFAULT_START_TIME =
-            LocalDateTime.of(9999999,1,1,0,0);
-    private final LocalDateTime DEFAULT_END_TIME =
-            LocalDateTime.of(9999999,12,31,23,59);
     private List<Subtask> subtasks = new ArrayList<>();
     private LocalDateTime endTime = null;
 
     //Конструктор создания нового эпика
     public Epic(String name, String description, Status status) {
-        super(0, name, description, status, null, 0);
+        super(name, description, status, LocalDateTime.now(), 0);
+        this.startTime = DEFAULT_LOCAL_DATE_TIME_START;
+        this.duration = Duration.ofMinutes(DEFAULT_DURATION);
+        this.endTime = DEFAULT_LOCAL_DATE_TIME_END;
     }
 
     //Конструктор для загрузки эпика из файла в менеджер (нужен параметр id)
@@ -59,7 +58,7 @@ public class Epic extends Task {
                 .map(Task::getStartTime)
                 .min(LocalDateTime::compareTo);
         // время начала самой ранней подзадачи
-        return startTime.orElse(LocalDateTime.of(9999999,1,1,0,0));
+        return startTime.orElse(DEFAULT_LOCAL_DATE_TIME_START);
     }
 
     @Override
@@ -68,7 +67,7 @@ public class Epic extends Task {
                 .map(Task::getEndTime)
                 .max(LocalDateTime::compareTo);
         // время начала самой ранней подзадачи
-        return endTime.orElse(LocalDateTime.of(9999999,12,31,23,59));
+        return endTime.orElse(DEFAULT_LOCAL_DATE_TIME_END);
     }
 
     @Override

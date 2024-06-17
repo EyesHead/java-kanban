@@ -1,15 +1,26 @@
 package models;
 import java.time.*;
 import java.util.Objects;
+import java.util.TimeZone;
 
 
 public class Task {
-    private int id;
+    private Integer id;
     private final String name;
     private final String description;
     protected Status status;
     protected Duration duration;
     protected LocalDateTime startTime;
+
+    protected LocalDateTime DEFAULT_LOCAL_DATE_TIME_START =
+            LocalDateTime.ofInstant(Instant.ofEpochMilli(0),
+                    TimeZone.getDefault().toZoneId());
+    protected int DEFAULT_DURATION = 60;
+    protected LocalDateTime DEFAULT_LOCAL_DATE_TIME_END =
+            LocalDateTime.ofInstant(Instant.ofEpochMilli(0),
+                    TimeZone.getDefault().toZoneId()).plusMinutes(DEFAULT_DURATION);
+
+
 
     // стандартный способ создания новой задачи
     public Task(String name, String description, Status status,
@@ -29,7 +40,7 @@ public class Task {
     }
 
 
-    public int getId(){
+    public Integer getId(){
         return id;
     }
 
@@ -93,6 +104,6 @@ public class Task {
     @Override
     public String toString() {
         return String.format("%d,%s,%s,%s,%s,%d,%d,%s\n",
-                id, this.getType(), name, status, description, getEpicId(), getDurationInMinutes(), getStartTime());
+                id, getType(), name, status, description, getEpicId(), getDurationInMinutes(), getStartTime());
     }
 }

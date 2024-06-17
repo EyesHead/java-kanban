@@ -70,7 +70,12 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addTask(Task task) {
         if (task == null) throw new RuntimeException("Задача не может быть пустой");
-        task.setId(generateId());
+
+        if (task.getId() != null) {
+            this.id = task.getId();
+        } else {
+            task.setId(generateId());
+        }
 
         try {
             validateTaskTime(task);
@@ -84,13 +89,24 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addEpic(Epic epic) {
         if (epic == null) throw new RuntimeException("Задача не может быть пустой");
-        epic.setId(generateId());
+
+        if (epic.getId() != null) {
+            this.id = epic.getId();
+        } else {
+            epic.setId(generateId());
+        }
+
         epics.put(epic.getId(), epic);
     }
     @Override
     public void addSubtask(Subtask subtask) {
         if (subtask == null) throw new RuntimeException("При добавлении подзадача не может быть пустой");
-        subtask.setId(generateId());
+
+        if (subtask.getId() != null) {
+            this.id = subtask.getId();
+        } else {
+            subtask.setId(generateId());
+        }
 
         // обновляем список подзадач у эпика
         Epic epic = epics.get(subtask.getEpicId());
@@ -249,41 +265,24 @@ public class InMemoryTaskManager implements TaskManager {
 
     // локальные методы
     protected Epic getEpicBySubtask(Subtask subtask) {
-        for (Epic epic : epics.values()) {
-            if (epic.getSubtasks().contains(subtask)) {
-                return epic;
-            }
-        }
-
-        return null;
-    }
-
-    private Epic updateEpicStatus(Epic epic) {
-        if (epic == null) return null;
-        boolean areAllSubtasksDone = epic.getSubtasks().stream().allMatch(subtask -> subtask.getStatus() == DONE);
-        if (areAllSubtasksDone) {
-            epic.setStatus(DONE);
-        } else {
-            epic.setStatus(IN_PROGRESS);
-        }
-        return epic;
-    }
-    private Epic updateEpicSubtasks(Subtask newSubtask, Epic epic) {
-        Subtask oldSubtask = epic.getSubtasks().get(newSubtask.getId());
-        epic.removeTask(oldSubtask);
-        epic.addTask(newSubtask);
-        return epic;
+        int epicId = subtask.getEpicId();
+        return epics.get(epicId);
     }
 
     private void validateTaskTime(Task taskToAdd) throws ValidationException {
         /*
-        Рассмотрим 2 события, при которых задачи пересекаются во времени:
+        1) Рассмотрим 2 события, при которых задачи пересекаются во времени:
         tStart----eStart----tEnd----eEnd
         eStart----tStart----eEnd-----tEnd
         где tStart и tEnd - это поля localDateTime у передаваемой в параметр задачи,
         а eStart и eEnd - соответствующие поля у задачи из списка prioritizedTasks
+        2) Если у задач одинаковый id, значит эта одна и та же задача
+        и ее в любом случае нужно обновить в prioritizedTasks
          */
+        if (prioritizedTasks.isEmpty()) return;
+
         for (Task existingTask : prioritizedTasks) {
+            if (existingTask.getId() == taskToAdd.getId()) {continue;}
             if (taskToAdd.getEndTime().isBefore(existingTask.getEndTime()) &&
                     taskToAdd.getEndTime().isAfter(existingTask.getStartTime())) {
                 throw new ValidationException("Временной интервал задачи пересекается с другой задачей.");

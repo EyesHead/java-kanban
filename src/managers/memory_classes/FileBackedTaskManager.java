@@ -82,9 +82,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         // Связываем подзадачи из таблицы со всеми эпиками и обновляем статус у эпиков
         for (Subtask subtask : subtasks.values()) {
-            Epic newEpic = getEpicBySubtask(subtask);
-            newEpic.addTask(subtask); // тут происходит перерасчет статуса, времени и длительности для Epic
-            epics.put(newEpic.getId(), newEpic);
+            Epic epic = getEpicBySubtask(subtask);
+            epic.addTask(subtask); // тут происходит перерасчет статуса, времени и длительности для Epic
+            epics.put(epic.getId(), epic);
         }
 
         updatePrioritizedList();
@@ -93,24 +93,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void updatePrioritizedList() {
         prioritizedTasks.addAll(tasks.values());
-        prioritizedTasks.addAll(epics.values());
-    }
-
-    private void save() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile(), StandardCharsets.UTF_8))) {
-            writer.write("id,type,name,status,description,epic(optional),duration,startTime\n");
-            for (Map.Entry<Integer,Task> taskEntry : tasks.entrySet()) {
-                writer.append(taskEntry.getValue().toString());
-            }
-            for (Map.Entry<Integer,Epic> epicEntry : epics.entrySet()) {
-                writer.append(epicEntry.getValue().toString());
-            }
-            for (Map.Entry<Integer,Subtask> subtaskEntry : subtasks.entrySet()) {
-                writer.append(subtaskEntry.getValue().toString());
-            }
-        } catch (IOException e) {
-            throw new ManagerIOException("Ошибка в файле: " + path.getFileName());
-        }
+        prioritizedTasks.addAll(subtasks.values());
     }
 
     private static Task fromString(String line) throws ManagerIOException{
@@ -143,6 +126,23 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         throw new ManagerIOException("Задача не была прочтена");
     }
 
+    private void save() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile(), StandardCharsets.UTF_8))) {
+            writer.write("id,type,name,status,description,epic(optional),duration,startTime\n");
+            for (Map.Entry<Integer,Task> taskEntry : tasks.entrySet()) {
+                writer.append(taskEntry.getValue().toString());
+            }
+            for (Map.Entry<Integer,Epic> epicEntry : epics.entrySet()) {
+                writer.append(epicEntry.getValue().toString());
+            }
+            for (Map.Entry<Integer,Subtask> subtaskEntry : subtasks.entrySet()) {
+                writer.append(subtaskEntry.getValue().toString());
+            }
+        } catch (IOException e) {
+            throw new ManagerIOException("Ошибка в файле: " + path.getFileName());
+        }
+    }
+
     public Path getPath() {
         return path;
     }
@@ -153,7 +153,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try {
             save();
         } catch (ManagerIOException e) {
-            System.out.println("Ошибка во время записи задачи");
+            System.out.println("Ошибка во время записи задачи ");
         }
 
     }

@@ -17,6 +17,7 @@ public class Subtask extends Task {
         this.epicId = epicId;
     }
 
+
     @Override
     public Integer getEpicId() {
         return epicId;
@@ -34,7 +35,7 @@ public class Subtask extends Task {
         if (!super.equals(object)) return false;
         Subtask subtask = (Subtask) object;
         return epicId == subtask.epicId &&
-                getId() == subtask.getId();
+                Objects.equals(getId(), subtask.getId());
     }
 
     @Override

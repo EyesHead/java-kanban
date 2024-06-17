@@ -1,22 +1,20 @@
 package managersTest;
 
-import managers.Managers;
 import managers.memory_classes.FileBackedTaskManager;
-import models.*;
+import models.Epic;
+import models.Subtask;
+import models.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-import static models.Status.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static models.Status.NEW;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /*
 Остальные проверки на работоспособность методов менеджера находятся в InMemoryTaskManagerTest, здесь же будут
@@ -28,19 +26,20 @@ import static org.junit.jupiter.api.Assertions.*;
 Логика тестов:
 1)Что-то делаем (или не делаем) с состоянием менеджера
 2) Загружаем (дублируем) менеджер с помощью метода loadFromFile
-3) Сверяем состояние предыдущего менеджера с текущим (лучше создать отельный метод для проверки)
+3) Сверяем состояние предыдущего менеджера с текущим (наличие и id всех типов задач + приоритизированный список)
  */
 public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     // ПРОВЕРИТЬ ДОБАВЛЕНИЕ НОВЫХ ЗАДАЧ (С УНИКАЛЬНЫИ ID) ПОСЛЕ ЗАГРУЗКИ ИЗ ФАЙЛА!!!
+
     @Override
-    protected FileBackedTaskManager createManager() throws IOException {
-        return Managers.getDefaultFileManager();
+    public FileBackedTaskManager createManager() throws IOException {
+        return new FileBackedTaskManager(File.createTempFile("resources/taskTemp", ".tmp").toPath());
     }
 
     @Override
     @BeforeEach
-    void setUp() {
-        super.setUp();
+    void beforeEach() throws IOException {
+        super.beforeEach();
     }
 
     @Override
@@ -56,8 +55,18 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(manager.getPath());
         loadedManager.getEpicsAsList().forEach(epic -> assertEquals(epic.getStatus(), NEW,
                 "Статусы всех эпиков загружаемого файла должны быть NEW"));
-        System.out.println(loadedManager.getAll());
-        System.out.println(manager.getAll());
+
+        System.out.printf("Текущее состояние менеджера: \n" + manager.getAll() + "\n");
+        System.out.printf("Текущее состояние менеджера после загрузки из файла: \n" + loadedManager.getAll() + "\n\n");
+        System.out.printf("Текущее состояние приоритизированного списка: \n" + manager.getPrioritizedTasks() + "\n");
+        System.out.printf("Текущее состояние приоритизированного списка после загрузки из файла: \n" +
+                loadedManager.getPrioritizedTasks());
+
+        assertTrue(areAllTasksAreSame(manager, loadedManager),
+                "Состояние задач из двух менеджеров не совпадает");
+        assertTrue(areSameSubtasksAtEpics(manager, loadedManager),
+                "Связанные подзадачи у эпиков не совпадают в двух менеджерах");
+        // допилить проверку двух менеджеров
     }
 
     @Override
@@ -72,10 +81,34 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
 
     }
 
-    @Override
-    @Test
-    void updateTaskAndCheckToPrioritizedList() {
+    private boolean areAllTasksAreSame(FileBackedTaskManager manager, FileBackedTaskManager loadedManager) {
+        List<Task> originalTasks = manager.getAll();
+        List<Task> loadedTasks = loadedManager.getAll();
 
+        if (originalTasks.size() != loadedTasks.size()) {
+            return false;
+        }
+        for (int i = 0; i < originalTasks.size(); i++) {
+            Task task = originalTasks.get(i);
+            Task loadedTask = loadedTasks.get(i);
+
+            if (!Objects.equals(task.getId(), loadedTask.getId()) ||
+                    !Objects.equals(task.getType(), loadedTask.getType()) ||
+                    !Objects.equals(task.getName(), loadedTask.getName()) ||
+                    !Objects.equals(task.getDescription(), loadedTask.getDescription()) ||
+                    !Objects.equals(task.getStatus(), loadedTask.getStatus()) ||
+                    !Objects.equals(task.getType(), loadedTask.getType()))
+                return false;
+        }
+
+        return true;
+    }
+
+    private boolean areSameSubtasksAtEpics(FileBackedTaskManager manager, FileBackedTaskManager loadedManager) {
+        List<Epic> originalEpics = manager.getEpicsAsList();
+        List<Epic> loadedEpics = loadedManager.getEpicsAsList();
+
+        return originalEpics.equals(loadedEpics);
     }
 
 //    private boolean checkAllEpicSubtasks(FileBackedTaskManager originalManager, FileBackedTaskManager loadedManager) {
