@@ -1,6 +1,5 @@
 package program_behavior;
 
-import managers.interfaces.TaskManager;
 import managers.memory_classes.FileBackedTaskManager;
 import managers.memory_classes.InMemoryTaskManager;
 import managers.Managers;
@@ -8,7 +7,6 @@ import models.Epic;
 import models.Subtask;
 import models.Task;
 
-import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -23,7 +21,7 @@ public class HistoryManagerMain {
     }
 
     private static void test() {
-        InMemoryTaskManager taskManager =  Managers.getDefaultFileManager();
+        FileBackedTaskManager taskManager =  Managers.getDefaultFileManager();
 
         Task task1 = new Task(0, "Имя Задачи1", "Описание задачи1", NEW,
                 LDTRandomizer.getRandomLDT(), 120);
@@ -80,8 +78,6 @@ public class HistoryManagerMain {
         System.out.println("Удаляю все обычные задачи через deleteAllTasks()");
         taskManager.deleteAllTasks();
         taskManager.printAllHistory();
-
-        System.out.println(taskManager.getPrioritizedTasks());
 
     }
 

@@ -6,6 +6,7 @@ import managers.custom_exceptions.ValidationException;
 import managers.interfaces.TaskManager;
 import models.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 import static models.Status.DONE;
@@ -74,7 +75,7 @@ public class InMemoryTaskManager implements TaskManager {
         task.setId(generateId());
         tasks.put(task.getId(), task);
 
-        if (prioritizedTasks.isEmpty() || validateTaskTime(task)) prioritizedTasks.add(task);
+        if (validateTaskTime(task)) prioritizedTasks.add(task);
     }
     @Override
     public void addEpic(Epic epic) {
@@ -98,7 +99,7 @@ public class InMemoryTaskManager implements TaskManager {
         epics.put(epic.getId(), epic);
 
         // обновление задачи в приоритизированном списке
-        if (validateTaskTime(subtask) || prioritizedTasks.isEmpty()) prioritizedTasks.add(subtask);
+        if (validateTaskTime(subtask)) prioritizedTasks.add(subtask);
     }
 
     @Override
@@ -138,14 +139,13 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteAllTasks() {
         for (int taskId : tasks.keySet()) historyManager.remove(taskId);
-        prioritizedTasks.removeAll(tasks.values());
         tasks.clear();
     }
     @Override
     public void deleteAllEpics() {
         for (int epicId : epics.keySet()) historyManager.remove(epicId);
         for (int subtaskId : subtasks.keySet()) historyManager.remove(subtaskId);
-        prioritizedTasks.removeAll(subtasks.values());
+
         epics.clear();
         subtasks.clear();
     }
@@ -154,7 +154,7 @@ public class InMemoryTaskManager implements TaskManager {
         for (Epic epic : epics.values()) { // очищаем список id подзадач у каждого объекта-эпика в epics
             epic.setSubtasks(new ArrayList<>());
         }
-        prioritizedTasks.removeAll(subtasks.values());
+
         for (int subtaskId : subtasks.keySet()) historyManager.remove(subtaskId);
         subtasks.clear(); // очищаем таблицу подзадач
     }
@@ -163,13 +163,11 @@ public class InMemoryTaskManager implements TaskManager {
         deleteAllTasks();
         deleteAllEpics();
         deleteAllSubtasks();
-        prioritizedTasks.clear();
     }
 
     @Override
     public void deleteTaskById(int taskId) {
         historyManager.remove(taskId);
-        prioritizedTasks.remove(tasks.get(taskId));
         tasks.remove(taskId);
     }
     @Override
@@ -178,10 +176,8 @@ public class InMemoryTaskManager implements TaskManager {
         ArrayList<Subtask> subtaskList = (ArrayList<Subtask>) epics.get(epicId).getSubtasks();
         if (!subtaskList.isEmpty()) {
             for (Subtask subtask : subtaskList) {
-                historyManager.remove(subtask.getId());
-                prioritizedTasks.remove(subtask);
                 subtasks.remove(subtask.getId(), subtask);
-
+                historyManager.remove(subtask.getId());
             }
         }
 
@@ -197,8 +193,7 @@ public class InMemoryTaskManager implements TaskManager {
         epic.removeTask(subtask);
         epics.put(epic.getId(), epic);
 
-        // Удаляем подзадачу из таблицы подзадач, истории и prioritized
-        prioritizedTasks.remove(subtask);
+        // Удаляем подзадачу из таблицы подзадач и истории
         subtasks.remove(subtaskId);
         historyManager.remove(subtaskId);
     }
