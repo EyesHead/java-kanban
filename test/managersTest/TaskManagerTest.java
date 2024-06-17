@@ -1,12 +1,11 @@
 package managersTest;
 
 import managers.custom_exceptions.NotFoundException;
-import managers.custom_exceptions.ValidationException;
 import managers.interfaces.HistoryManager;
 import managers.interfaces.TaskManager;
 import models.*;
 import org.junit.jupiter.api.*;
-import program_behavior.LDTRandomizer;
+import util.LDTRandomizer;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -27,22 +26,30 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     public Subtask subtaskC;
 
     protected abstract T createManager() throws IOException;
-    //        subtaskA = new Subtask("Подзадача 1", "Дизайн пользовательского интерфейса", NEW,
-    //                epic.getId(), LocalDateTime.of(2020, 1, 1, 0, 0), 60);
-    //        subtaskB = new Subtask("Подзадача 2", "Разработка пользовательских сценариев", NEW,
-    //                epic.getId(), LocalDateTime.of(2021, 1, 2, 0, 0), 60);
-    //        subtaskC = new Subtask("Подзадача 2", "Разработка пользовательских сценариев", NEW,
-    //                epic.getId(), LocalDateTime.of(2022, 1, 3, 0, 0), 60);
+
     @BeforeEach
     void beforeEach() throws IOException {
         manager = createManager();
+    }
 
+    void initTasks() {
         task1 = new Task("Создание Мобильного Приложения", "Разработка интерфейса", NEW,
                 LDTRandomizer.getRandomLDT(), 50);
         task2 = new Task("Новая задача", "Описание новой задачи", NEW,
                 LDTRandomizer.getRandomLDT(), 40);
+    }
 
+    void initEpic() {
         epic = new Epic("Разработка интерфейса", "Разделяется на 3 подзадачи", NEW);
+    }
+
+    void initSubtasks() {
+        subtaskA = new Subtask("Подзадача 1", "Дизайн пользовательского интерфейса", NEW,
+                epic.getId(), LocalDateTime.of(2020, 1, 1, 0, 0), 60);
+        subtaskB = new Subtask("Подзадача 2", "Разработка пользовательских сценариев", NEW,
+                epic.getId(), LocalDateTime.of(2021, 1, 2, 0, 0), 60);
+        subtaskC = new Subtask("Подзадача 2", "Разработка пользовательских сценариев", NEW,
+                epic.getId(), LocalDateTime.of(2022, 1, 3, 0, 0), 60);
     }
 
     @DisplayName("Проверка статуса у эпика. Все подзадачи со статусом NEW")
@@ -62,6 +69,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @DisplayName("Создать задачу + задать ей уникальный идентификатор")
     @Test
     void shouldCreateTaskWithUniqueId() {
+        initTasks();
         manager.addTask(task1);
         Task taskUnique =
                 new Task( "Очередная задача", "???", NEW, LocalDateTime.now(), 10);
@@ -79,6 +87,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @DisplayName("Создать эпик + задать ему уникальный идентификатор")
     @Test
     void shouldCreateEpicWithUniqueId() {
+        initEpic();
         manager.addEpic(epic);
         Epic uniqueEpic =
                 new Epic("123213", "???", NEW);
@@ -96,10 +105,9 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @DisplayName("Создать подзадачу + задать ей уникальный идентификатор")
     @Test
     void shouldCreateSubtaskWithUniqueId() {
+        initEpic();
         manager.addEpic(epic);
-        subtaskA = new Subtask("Подзадача 1", "Дизайн пользовательского интерфейса", NEW,
-                epic.getId(), LocalDateTime.of(2020, 1, 1, 0, 0), 60);
-
+        initSubtasks();
         manager.addSubtask(subtaskA);
         Subtask uniqueSubtask =
                 new Subtask("Очередная задача", "???", NEW, epic.getId(),LocalDateTime.now(), 10);
@@ -117,6 +125,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @DisplayName("Обновить статус и время у существующей задачи и проверить, что она изменилась в менеджере")
     @Test
     void updateTask() {
+        initTasks();
         manager.addTask(task1);
         Task task1InProgress = task1;
         task1InProgress.setStatus(IN_PROGRESS);
@@ -138,7 +147,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void deleteAllEpicsAndCheckHistory() {
+        initEpic();
         manager.addEpic(epic);
+
+        initSubtasks();
         manager.addSubtask(subtaskA);
         manager.addSubtask(subtaskB);
 
@@ -164,8 +176,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void deleteAllSubtasksAndCheckHistory() {
-
+        initEpic();
         manager.addEpic(epic);
+
+        initSubtasks();
         manager.addSubtask(subtaskA);
         manager.addSubtask(subtaskB);
 
@@ -186,6 +200,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void deleteTaskByIdAndCheckHistory() {
+        initTasks();
         manager.addTask(task1);// id = 0
         manager.addTask(task2);// id = 1
         manager.getTaskById(task1.getId());
@@ -210,7 +225,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         // Эпик должен удалиться из map`ы эпиков
         // Должны удалиться все подзадачи из map`ы подзадач
         // Эпик должен удалиться из истории просмотров
+        initEpic();
         manager.addEpic(epic);// id = 0
+
+        initSubtasks();
         manager.addSubtask(subtaskA);// id = 1
         manager.addSubtask(subtaskB);// id = 2
 
@@ -239,7 +257,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         // Эпик должен удалиться из map`ы эпиков
         // Должны удалиться все подзадачи из map`ы подзадач
         // Эпик должен удалиться из истории просмотров
+        initEpic();
         manager.addEpic(epic);// id = 0
+
+        initSubtasks();
         manager.addSubtask(subtaskA);// id = 1
         manager.addSubtask(subtaskB);// id = 2
 
@@ -263,23 +284,48 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(manager.getHistoryManager().getAll().size(), 0, "История должна быть пустая!");
     }
 
-    @DisplayName("Удалять подзадачи из эпика с разными статусами и проверить статус эпика")
+    @DisplayName("Удалять NEW подзадачу из эпика и проверить статус эпика")
     @Test
-    void deleteNewSubtaskWhileOtherAreDone() {
+    void deleteSubtaskNewWhileOtherAreDone() {
+        initEpic();
         manager.addEpic(epic);
+
+        initSubtasks();
         manager.addSubtask(subtaskA);
         manager.addSubtask(subtaskB);
         manager.addSubtask(subtaskC);
+
         subtaskA.setStatus(DONE);
         subtaskB.setStatus(DONE);
+
         manager.updateSubtask(subtaskA);
         manager.updateSubtask(subtaskB);
-        assertEquals(manager.getSubtaskById(subtaskA.getId()).getStatus(), DONE,
+
+        /*
+        epic - IN_PROGRESS
+         -> SubtaskA - DONE
+         -> SubtaskB - DONE
+         -> SubtaskC - NEW
+        */
+
+        assertEquals(DONE, manager.getSubtaskById(subtaskA.getId()).getStatus(),
                 "Статус подзадачи А должен измениться на DONE");
-        assertEquals(manager.getSubtaskById(subtaskB.getId()).getStatus(), DONE,
+        assertEquals(DONE, manager.getSubtaskById(subtaskB.getId()).getStatus(),
                 "Статус подзадачи B должен измениться на DONE");
-        assertEquals(manager.getEpicById(epic.getId()).getStatus(), IN_PROGRESS,
+        assertEquals(IN_PROGRESS, manager.getEpicsAsList().getFirst().getStatus(),
                 "Статус эпика должен быть IN_PROGRESS");
 
+        manager.deleteSubtaskById(subtaskC.getId());
+        /*
+            epic - DONE
+             -> SubtaskA - DONE
+             -> SubtaskB - DONE
+        */
+        assertEquals(DONE, manager.getSubtaskById(subtaskA.getId()).getStatus(),
+                "Статус подзадачи А должен измениться на DONE");
+        assertEquals(DONE, manager.getSubtaskById(subtaskB.getId()).getStatus(),
+                "Статус подзадачи B должен измениться на DONE");
+        assertEquals(DONE, manager.getEpicsAsList().getFirst().getStatus(),
+                "Статус эпика должен быть IN_PROGRESS");
     }
 }

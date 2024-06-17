@@ -151,7 +151,7 @@ public class InMemoryTaskManager implements TaskManager {
                         .orElseThrow(() -> new NotFoundException("Subtask with id " + updatedSubtask.getId() + " not found"));
 
         Epic epic = epics.get(updatedSubtask.getEpicId());
-        // полный перерасчёт времени начала, конца и длительности для эпика
+        // полный перерасчёт времени начала, конца, длительности и статуса ЭПИКа
         epic.removeTask(originalSub);
         epic.addTask(updatedSubtask);
         // обновление задачи в приоритизированном списке

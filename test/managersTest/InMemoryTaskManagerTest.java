@@ -36,19 +36,29 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
     @Override
     @Test
     void testEpicNew() {
-        final List<Subtask> subtasksBeforeUpdate = manager.getSubtasksAsList();
+        initEpic();
+        manager.addEpic(epic);
+        initSubtasks();
+        manager.addSubtask(subtaskA);
+        manager.addSubtask(subtaskB);
+
         assertEquals(NEW, manager.getEpicsAsList().getFirst().getStatus(),"Статус эпика должен быть NEW");
-        assertEquals(NEW, subtasksBeforeUpdate.getFirst().getStatus(),"Статус подзадачи A должен быть NEW!");
-        assertEquals(NEW, subtasksBeforeUpdate.getLast().getStatus(), "Статус подзадачи B должен быть NEW!");
+        assertEquals(NEW, manager.getSubtasksAsList().getFirst().getStatus(),"Статус подзадачи A должен быть NEW!");
+        assertEquals(NEW, manager.getSubtasksAsList().getLast().getStatus(), "Статус подзадачи B должен быть NEW!");
     }
 
     @Override
     @Test
     void testEpicInProgress() {
-        deleteAllEpicsAndCheckHistory();
+        initEpic();
+        manager.addEpic(epic);
+        initSubtasks();
+        manager.addSubtask(subtaskA);
+        manager.addSubtask(subtaskB);
+
         // Обновляем статус SubtaskA на IN_PROGRESS => статус эпика меняется на IN_PROGRESS
-        Subtask subtaskAUpdated = new Subtask(subtaskA.getId(), "&!#!@#", "***", IN_PROGRESS, epic.getId(),
-                subtaskA.getStartTime(), subtaskA.getDurationInMinutes());
+        Subtask subtaskAUpdated = subtaskA;
+        subtaskAUpdated.setStatus(IN_PROGRESS);
         manager.updateSubtask(subtaskAUpdated);//обновляем подзадачу
 
         assertEquals(IN_PROGRESS, manager.getEpicsAsList().getFirst().getStatus(),
@@ -57,11 +67,33 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
                 "Статус подзадачи A должен быть IN_PROGRESS!");
         assertEquals(NEW, manager.getSubtaskById(subtaskB.getId()).getStatus(),
                 "Статус подзадачи B должен быть NEW!");
+
+        Subtask subtaskBUpdated = subtaskB;
+        subtaskBUpdated.setStatus(DONE);
+        manager.updateSubtask(subtaskBUpdated);
+        // epic - IN_PROGRESS
+        // subtaskA - IN_PROGRESS
+        // subtaskB - DONE
+
+        assertEquals(2, manager.getSubtasksAsList().size(), "В менеджере должно быть 3 subtask");
+        assertEquals(IN_PROGRESS, manager.getEpicsAsList().getFirst().getStatus(),
+                "Статус эпика после обновления должен быть IN_PROGRESS");
+        assertEquals(IN_PROGRESS, manager.getSubtaskById(subtaskA.getId()).getStatus(),
+                "Статус подзадачи A должен быть IN_PROGRESS!");
+        assertEquals(DONE, manager.getSubtaskById(subtaskB.getId()).getStatus(),
+                "Статус подзадачи B должен быть NEW!");
+
     }
 
     @Override
     @Test
     void testEpicDone() {
+        initEpic();
+        manager.addEpic(epic);
+        initSubtasks();
+        manager.addSubtask(subtaskA);
+        manager.addSubtask(subtaskB);
+
         Subtask subtaskADone = new Subtask(subtaskA.getId(),"Done A Subtask", "some description a",
                 DONE, epic.getId(), subtaskA.getStartTime(), subtaskA.getDurationInMinutes());
         Subtask subtaskBDone = new Subtask(subtaskB.getId(),"Done B Subtask", "some description b", DONE,
@@ -80,6 +112,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
     @Test
     void updateTask() {
+        initTasks();
         manager.addTask(task1);
         manager.addTask(task2);
 
@@ -100,6 +133,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
     @Test
     void deleteAllTasksAndCheckHistory() {
+        initTasks();
         manager.addTask(task1);
         manager.addTask(task2);
         manager.getTaskById(task1.getId());

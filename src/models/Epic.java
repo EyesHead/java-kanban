@@ -90,7 +90,7 @@ public class Epic extends Task {
         if (!super.equals(object)) return false;
         Epic epic = (Epic) object;
         return Objects.equals(subtasks, epic.subtasks) &&
-                getId() == epic.getId();
+                Objects.equals(getId(), epic.getId());
     }
 
     @Override
@@ -105,14 +105,14 @@ public class Epic extends Task {
 
     private void updateStatus() {
         boolean allCompleted = subtasks.stream().allMatch(subtask -> subtask.getStatus() == Status.DONE);
-        boolean anyInProgress = subtasks.stream().anyMatch(subtask -> subtask.getStatus() == Status.IN_PROGRESS);
+        boolean allNew = subtasks.stream().allMatch(subtask -> subtask.getStatus() == Status.NEW);
 
         if (allCompleted) {
             this.status = Status.DONE;
-        } else if (anyInProgress) {
-            this.status = Status.IN_PROGRESS;
-        } else {
+        } else if (allNew) {
             this.status = Status.NEW;
+        } else {
+            this.status = Status.IN_PROGRESS;
         }
     }
 }

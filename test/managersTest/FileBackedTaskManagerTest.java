@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import static models.Status.NEW;
+import static models.Status.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 3) Сверяем состояние предыдущего менеджера с текущим (наличие и id всех типов задач + приоритизированный список)
  */
 public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
-    // ПРОВЕРИТЬ ДОБАВЛЕНИЕ НОВЫХ ЗАДАЧ (С УНИКАЛЬНЫИ ID) ПОСЛЕ ЗАГРУЗКИ ИЗ ФАЙЛА!!!
 
     @Override
     public FileBackedTaskManager createManager() throws IOException {
@@ -45,7 +44,13 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     @Override
     @Test
     void testEpicNew() {
-        // все эпики в менеджере уже new, добавим парочку для тестов
+        // эпик в менеджере уже new, добавим парочку для тестов
+        initEpic();
+        manager.addEpic(epic);
+        initSubtasks();
+        manager.addSubtask(subtaskA);
+        manager.addSubtask(subtaskB);
+        manager.addSubtask(subtaskC);
         Epic newEpic1 = new Epic("Новый эпик", "Какое-то описание (фантазия на уровне)", NEW);
         Epic newEpic2 = new Epic("Ещё эпик", "Супер-оригинальное описание", NEW);
         manager.addEpic(newEpic1);
@@ -56,28 +61,66 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         loadedManager.getEpicsAsList().forEach(epic -> assertEquals(epic.getStatus(), NEW,
                 "Статусы всех эпиков загружаемого файла должны быть NEW"));
 
-        System.out.printf("Текущее состояние менеджера: \n" + manager.getAll() + "\n");
-        System.out.printf("Текущее состояние менеджера после загрузки из файла: \n" + loadedManager.getAll() + "\n\n");
-        System.out.printf("Текущее состояние приоритизированного списка: \n" + manager.getPrioritizedTasks() + "\n");
-        System.out.printf("Текущее состояние приоритизированного списка после загрузки из файла: \n" +
-                loadedManager.getPrioritizedTasks());
-
         assertTrue(areAllTasksAreSame(manager, loadedManager),
                 "Состояние задач из двух менеджеров не совпадает");
         assertTrue(areSameSubtasksAtEpics(manager, loadedManager),
                 "Связанные подзадачи у эпиков не совпадают в двух менеджерах");
-        // допилить проверку двух менеджеров
     }
 
     @Override
     @Test
     void testEpicInProgress() {
+        initEpic();
+        manager.addEpic(epic);
+        initSubtasks();
+        manager.addSubtask(subtaskA);
+        manager.addSubtask(subtaskB);
 
+        subtaskA.setStatus(IN_PROGRESS);
+        subtaskB.setStatus(DONE);
+        Subtask aSubtaskUpdated = subtaskA;
+        Subtask bSubtaskUpdated = subtaskB;
+
+        manager.updateSubtask(aSubtaskUpdated);
+        manager.updateSubtask(bSubtaskUpdated);
+
+        assertEquals(IN_PROGRESS, manager.getEpicById(epic.getId()).getStatus(),
+                "Статус эпика после обновлений подзадач должен быть IN_PROGRESS");
+
+        bSubtaskUpdated.setStatus(IN_PROGRESS);
+        manager.updateSubtask(bSubtaskUpdated);
+        assertEquals(IN_PROGRESS, manager.getEpicById(epic.getId()).getStatus(),
+                "Статус эпика после обновлений подзадач должен быть IN_PROGRESS");
+
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(manager.getPath());
+        assertEquals(IN_PROGRESS, loadedManager.getEpicsAsList().getFirst().getStatus(),
+                "Статус эпика загружаемого файла должны быть IN_PROGRESS");
+        assertTrue(areAllTasksAreSame(manager, loadedManager),
+                "Состояние задач из двух менеджеров не совпадает");
+        assertTrue(areSameSubtasksAtEpics(manager, loadedManager),
+                "Связанные подзадачи у эпиков не совпадают в двух менеджерах");
     }
 
     @Override
     @Test
     void testEpicDone() {
+        testEpicInProgress();
+        subtaskA.setStatus(DONE);
+        manager.updateSubtask(subtaskA);
+
+        subtaskB.setStatus(DONE);
+        manager.updateSubtask(subtaskB);
+
+        assertEquals(DONE, manager.getEpicById(epic.getId()).getStatus(),
+                "Статус эпика после обновлений подзадач должен быть DONE");
+
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(manager.getPath());
+        assertEquals(DONE, loadedManager.getEpicsAsList().getFirst().getStatus(),
+                "Статус эпика загружаемого файла должны быть DONE");
+        assertTrue(areAllTasksAreSame(manager, loadedManager),
+                "Состояние задач из двух менеджеров не совпадает");
+        assertTrue(areSameSubtasksAtEpics(manager, loadedManager),
+                "Связанные подзадачи у эпиков не совпадают в двух менеджерах");
 
     }
 
@@ -110,21 +153,4 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
 
         return originalEpics.equals(loadedEpics);
     }
-
-//    private boolean checkAllEpicSubtasks(FileBackedTaskManager originalManager, FileBackedTaskManager loadedManager) {
-//        List<Subtask> originalSubtasks = originalManager.getEpicsAsList().stream()
-//                .flatMap(epic -> epic.getSubtasks().stream()).sorted(Integer.compare(Epic::getId))
-//                .toList();
-//
-//        List<Subtask> loadedSubtasks = loadedManager.getEpicsAsList().stream()
-//                .flatMap(epic -> epic.getSubtasks().stream())
-//                .toList();
-//
-//        if (originalSubtasks.size() != loadedSubtasks.size()) {
-//            return false;
-//        }
-//
-//        originalSubtasks.sort(Integer.compare(Task::getId));
-//        return true;
-//    }
 }

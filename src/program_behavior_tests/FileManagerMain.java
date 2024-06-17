@@ -1,4 +1,4 @@
-package program_behavior;
+package program_behavior_tests;
 
 import managers.memory_classes.FileBackedTaskManager;
 import models.*;

@@ -1,16 +1,11 @@
-package program_behavior;
+package program_behavior_tests;
 
 import managers.memory_classes.FileBackedTaskManager;
-import managers.memory_classes.InMemoryTaskManager;
 import managers.Managers;
 import models.Epic;
 import models.Subtask;
 import models.Task;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Random;
+import util.LDTRandomizer;
 
 import static models.Status.NEW;
 
@@ -71,11 +66,6 @@ public class HistoryManagerMain {
         taskManager.getSubtaskById(subtask1_1.getId());
         taskManager.getSubtaskById(subtask1_1.getId());
         taskManager.getEpicById(epic1.getId());
-        taskManager.printAllHistory();
-
-        System.out.println();
-        System.out.println("Удаляю все обычные задачи через deleteAllTasks()");
-        taskManager.deleteAllTasks();
         taskManager.printAllHistory();
 
     }
