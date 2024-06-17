@@ -20,20 +20,29 @@ public interface TaskManager {
     void deleteAllEpics();
     void deleteAllSubtasks();
 
+    void deleteTaskById(int taskId);
+    void deleteEpicById(int epicId);
+    void deleteSubtaskById(int subtaskId);
+    void clearAll();
+
     //методы обновления
     void updateTask(Task task);
     void updateSubtask(Subtask subtask);
 
     Set<Task> getPrioritizedTasks();
 
-    //управление historyManager'ом
+    //геттеры, добавляющие задачи в historyManager
     Task getTaskById(int taskId);
     Epic getEpicById(int epicId);
     Subtask getSubtaskById(int subtaskId);
     InMemoryHistoryManager getHistoryManager();
 
-    void deleteTaskById(int taskId);
-    void deleteEpicById(int epicId);
-    void deleteSubtaskById(int subtaskId);
-    void clearAll();
+    //гетеры, но без управления historyManager
+    ArrayList<Task> getTasksAsList();
+    ArrayList<Epic> getEpicsAsList();
+    ArrayList<Subtask> getSubtasksAsList();
+    ArrayList<Task> getAll();
+
+
+
 }

@@ -11,15 +11,21 @@ public class Task {
     protected Duration duration;
     protected LocalDateTime startTime;
 
-
-    public Task(int id, String name, String description, Status status,
+    // стандартный способ создания новой задачи
+    public Task(String name, String description, Status status,
                 LocalDateTime startTime, int durationMinutes) {
         this.name = name;
         this.description = description;
-        this.id = id;
         this.status = status;
         this.duration = Duration.ofMinutes(durationMinutes);
         this.startTime = startTime;
+    }
+
+    // параметр id указывается для обновления задачи с тем же id в менеджере и загрузки из файла
+    public Task(int id, String name, String description, Status status,
+                LocalDateTime startTime, int durationMinutes) {
+        this(name, description, status, startTime, durationMinutes);
+        this.id = id;
     }
 
 

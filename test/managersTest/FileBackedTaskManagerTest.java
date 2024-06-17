@@ -1,87 +1,97 @@
 package managersTest;
 
+import managers.Managers;
 import managers.memory_classes.FileBackedTaskManager;
-import models.Epic;
-import models.Subtask;
-import models.Task;
-import org.junit.jupiter.api.AfterEach;
+import models.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static models.Status.NEW;
+import static models.Status.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileBackedTaskManagerTest {
-    FileBackedTaskManager fileManager;
-    Task task1;
-    Task task2;
-    Epic epic;
-    Subtask subtaskA;
-    Subtask subtaskB;
-    File tempFile;
+/*
+Остальные проверки на работоспособность методов менеджера находятся в InMemoryTaskManagerTest, здесь же будут
+исключительно проверки на загрузку из файла всех типов задач с сохранением prioritizedTasks списка
+ТЕСТЫ В ЭТОМ КЛАССЕ СЛЕДУЕТ ЗАПУСКАТЬ ПОСЛЕ ТЕСТОВ В InMemoryTaskManagerTest
+ */
 
+/*
+Логика тестов:
+1)Что-то делаем (или не делаем) с состоянием менеджера
+2) Загружаем (дублируем) менеджер с помощью метода loadFromFile
+3) Сверяем состояние предыдущего менеджера с текущим (лучше создать отельный метод для проверки)
+ */
+public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
+    // ПРОВЕРИТЬ ДОБАВЛЕНИЕ НОВЫХ ЗАДАЧ (С УНИКАЛЬНЫИ ID) ПОСЛЕ ЗАГРУЗКИ ИЗ ФАЙЛА!!!
+    @Override
+    protected FileBackedTaskManager createManager() throws IOException {
+        return Managers.getDefaultFileManager();
+    }
+
+    @Override
     @BeforeEach
-    public void setUp() throws IOException {
-        //почти заполнили файл менеджер
-        tempFile = File.createTempFile("taskTmp", ".csv");
-        fileManager = new FileBackedTaskManager(Path.of(tempFile.getAbsolutePath()));
-        task1 = new Task(0,"Создание Мобильного Приложения", "Разработка интерфейса", NEW);
-        task2 = new Task(0,"Новая задача", "Описание новой задачи", NEW);
-        epic = new Epic(0, "Разработка интерфейса", "Разделяется на 3 подзадачи", NEW);
-        fileManager.addTask(task1);
-        fileManager.addTask(task2);
-        fileManager.addEpic(epic);
-
-        //Заполнили историю просмотров
-        fileManager.getTaskById(task1.getId());
-        fileManager.getTaskById(task2.getId());
-        fileManager.getEpicById(epic.getId());
-
+    void setUp() {
+        super.setUp();
     }
 
+    @Override
     @Test
-    public void compareLoadedFileManagerFromBlankFileManagerTest() {
+    void testEpicNew() {
+        // все эпики в менеджере уже new, добавим парочку для тестов
+        Epic newEpic1 = new Epic("Новый эпик", "Какое-то описание (фантазия на уровне)", NEW);
+        Epic newEpic2 = new Epic("Ещё эпик", "Супер-оригинальное описание", NEW);
+        manager.addEpic(newEpic1);
+        manager.addEpic(newEpic2);
+        assertEquals(manager.getEpicsAsList().size(), 3, "Эпик не был добавлен в менеджер");
 
-        fileManager.clearAll();
-        FileBackedTaskManager fileManagerLoad = FileBackedTaskManager.loadFromFile(fileManager.getPath());
-
-        assertTrue(fileManagerLoad.getHistoryManager().getAll().isEmpty(), "История не пустая");
-        assertTrue(fileManagerLoad.getAll().isEmpty(), "Задачи с пустого менеджера тоже должны быть пустыми");
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(manager.getPath());
+        loadedManager.getEpicsAsList().forEach(epic -> assertEquals(epic.getStatus(), NEW,
+                "Статусы всех эпиков загружаемого файла должны быть NEW"));
+        System.out.println(loadedManager.getAll());
+        System.out.println(manager.getAll());
     }
 
+    @Override
     @Test
-    public void saveNewTasksTest() {
-        subtaskA = new Subtask(0,"Подзадача 1", "Дизайн пользовательского интерфейса", epic.getId(), NEW);
-        subtaskB = new Subtask(0,"Подзадача 2", "Разработка пользовательских сценариев", epic.getId(), NEW);
-        fileManager.addSubtask(subtaskA);
-        fileManager.addSubtask(subtaskB);
+    void testEpicInProgress() {
 
-        assertEquals(5, fileManager.getAll().size(), "Ожидалось создание 5 задач в файл");
     }
 
+    @Override
     @Test
-    public void compareLoadedFileManagerFromFilledFileManagerTest() {
-        subtaskA = new Subtask(0, "Подзадача 1", "Дизайн пользовательского интерфейса", epic.getId(), NEW);
-        subtaskB = new Subtask(0, "Подзадача 2", "Разработка пользовательских сценариев", epic.getId(), NEW);
-        fileManager.addSubtask(subtaskA);
-        fileManager.addSubtask(subtaskB);
-
-        fileManager.getSubtaskById(subtaskA.getId());
-        fileManager.getSubtaskById(subtaskB.getId());
-        fileManager.getTaskById(task1.getId());
-
-        FileBackedTaskManager fileManagerLoad = FileBackedTaskManager.loadFromFile(fileManager.getPath());
-        assertEquals(fileManager.getAll().size() ,fileManagerLoad.getAll().size(),
-                "Количество всех задач в обоих файлах должно быть одинаковым");
+    void testEpicDone() {
 
     }
 
-    @AfterEach
-    public void deleteTempFile() {
-        tempFile.deleteOnExit();
+    @Override
+    @Test
+    void updateTaskAndCheckToPrioritizedList() {
+
     }
+
+//    private boolean checkAllEpicSubtasks(FileBackedTaskManager originalManager, FileBackedTaskManager loadedManager) {
+//        List<Subtask> originalSubtasks = originalManager.getEpicsAsList().stream()
+//                .flatMap(epic -> epic.getSubtasks().stream()).sorted(Integer.compare(Epic::getId))
+//                .toList();
+//
+//        List<Subtask> loadedSubtasks = loadedManager.getEpicsAsList().stream()
+//                .flatMap(epic -> epic.getSubtasks().stream())
+//                .toList();
+//
+//        if (originalSubtasks.size() != loadedSubtasks.size()) {
+//            return false;
+//        }
+//
+//        originalSubtasks.sort(Integer.compare(Task::getId));
+//        return true;
+//    }
 }

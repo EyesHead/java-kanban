@@ -6,6 +6,7 @@ import models.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static models.Status.*;
@@ -27,36 +28,46 @@ public class FileManagerMain {
                 assertEquals(fileManager.getEpicsAsList(), fileManagerReload.getEpicsAsList()));
         System.out.println("Все подзадачи, которые были в старом менеджере, есть в новом? Ответ " +
                 assertEquals(fileManager.getSubtasksAsList(), fileManagerReload.getSubtasksAsList()));
+        System.out.println("Приоритетный список загруженного менеджера такой же, как и у оригинального?" +
+                assertEquals(new ArrayList<>(fileManager.getPrioritizedTasks()),
+                             new ArrayList<>(fileManagerReload.getPrioritizedTasks())));
+
+        System.out.println("Приоритетный список оригинального менеджера:");
+        System.out.println(fileManager.getPrioritizedTasks());
+        System.out.println("Приоритетный список менеджера загруженного из файла:");
+        System.out.println(fileManagerReload.getPrioritizedTasks());
     }
 
     private static FileBackedTaskManager getFileManager() throws IOException {
         FileBackedTaskManager fileManager = new FileBackedTaskManager();
 
-        Task task1 = new Task(0,"Имя Задачи1", "Описание задачи1", NEW,
+        Task task1 = new Task("Имя Задачи1", "Описание задачи1", NEW,
                 LocalDateTime.of(2022, 12, 13, 12, 45), 15);
         fileManager.addTask(task1);
 
-        Task task2 = new Task(0,"Имя Задачи2", "Описание задачи2", NEW,
+        Task task2 = new Task("Имя Задачи2", "Описание задачи2", NEW,
                 LocalDateTime.of(2023, 2, 27, 2, 15), 200);
         fileManager.addTask(task2);
 
-        Epic epic1 = new Epic(0, "Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
+        Epic epic1 = new Epic("Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
         fileManager.addEpic(epic1);
 
-        Subtask subtask1_1 = new Subtask(0,"Подзадача 1.1", "Subtask1 for epic1", NEW, epic1.getId(),
-                LocalDateTime.of(2023, 2, 27, 1, 50), 50);
-
-        Subtask subtask1_2 = new Subtask(0,"Подзадача 1.2", "Subtask2 for epic1", IN_PROGRESS, epic1.getId(),
-                LocalDateTime.of(2023, 2, 27, 2, 15), 200);
-        Subtask subtask1_3 = new Subtask(0,"Подзадача 1.3", "Subtask3 for epic1", DONE, epic1.getId(),
-                LocalDateTime.of(2023, 2, 26, 23, 35), 25);
+        Subtask subtask1_1 = new Subtask("Подзадача 1.1", "Subtask1 for epic1", NEW, epic1.getId(),
+                LocalDateTime.of(2021, 2, 27, 1, 50), 50);
         fileManager.addSubtask(subtask1_1);
+
+        Subtask subtask1_2 = new Subtask("Подзадача 1.2", "Subtask2 for epic1", IN_PROGRESS, epic1.getId(),
+                LocalDateTime.of(2023, 3, 27, 2, 15), 200);
         fileManager.addSubtask(subtask1_2);
+
+        Subtask subtask1_3 = new Subtask("Подзадача 1.3", "Subtask3 for epic1", DONE, epic1.getId(),
+                LocalDateTime.of(2025, 4, 26, 23, 35), 25);
         fileManager.addSubtask(subtask1_3);
+
         return fileManager;
     }
 
-    private static boolean assertEquals(ArrayList<? extends Task> expected, ArrayList<? extends Task> actual) {
+    private static boolean assertEquals(List<? extends Task> expected, List<? extends Task> actual) {
         if (expected.size() != actual.size()) {
             return false;
         }
