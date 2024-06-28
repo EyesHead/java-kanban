@@ -1,19 +1,22 @@
 package models;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Subtask extends Task {
     private final int epicId;
 
-    public Subtask(String name, String description, int epicId, Status status) {
-        super(name, description, status);
+    public Subtask(int id, String name, String description, Status status, int epicId,
+                   LocalDateTime startTime, int duration) {
+        super(id, name, description, status, startTime, duration);
+        this.epicId = epicId;
+    }
+    public Subtask(String name, String description, Status status, int epicId,
+                   LocalDateTime startTime, int duration) {
+        super(name, description, status, startTime, duration);
         this.epicId = epicId;
     }
 
-    public Subtask(int id, String name, String description,int epicId, Status status) {
-        super(id, name, description, status);
-        this.epicId = epicId;
-    }
 
     @Override
     public Integer getEpicId() {
@@ -32,7 +35,7 @@ public class Subtask extends Task {
         if (!super.equals(object)) return false;
         Subtask subtask = (Subtask) object;
         return epicId == subtask.epicId &&
-                id == subtask.id;
+                Objects.equals(getId(), subtask.getId());
     }
 
     @Override

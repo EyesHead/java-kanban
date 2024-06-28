@@ -1,33 +1,39 @@
-package program_behavior;
+package program_behavior_tests;
 
-import managers.memory_classes.InMemoryTaskManager;
+import managers.memory_classes.FileBackedTaskManager;
 import managers.Managers;
 import models.Epic;
 import models.Subtask;
 import models.Task;
+import util.LDTRandomizer;
 
 import static models.Status.NEW;
 
 public class HistoryManagerMain {
+
     public static void main(String[] args) {
         test();
     }
 
     private static void test() {
+        FileBackedTaskManager taskManager =  Managers.getDefaultFileManager();
 
-        InMemoryTaskManager taskManager =  Managers.getDefault();
-
-        Task task1 = new Task("Имя Задачи1", "Описание задачи1", NEW);
+        Task task1 = new Task("Имя Задачи1", "Описание задачи1", NEW,
+                LDTRandomizer.getRandomLDT(), 120);
         taskManager.addTask(task1);
 
-        Task task2 = new Task("Имя Задачи2", "Описание задачи2", NEW);
+        Task task2 = new Task("Имя Задачи2", "Описание задачи2", NEW,
+                LDTRandomizer.getRandomLDT(), 60);
         taskManager.addTask(task2);
 
         Epic epic1 = new Epic("Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
         taskManager.addEpic(epic1);
-        Subtask subtask1_1 = new Subtask("Подзадача 1.1", "Subtask1 for epic1", epic1.getId(), NEW);
-        Subtask subtask1_2 = new Subtask("Подзадача 1.2", "Subtask2 for epic1", epic1.getId(), NEW);
-        Subtask subtask1_3 = new Subtask("Подзадача 1.3", "Subtask3 for epic1", epic1.getId(), NEW);
+        Subtask subtask1_1 = new Subtask(0,"Подзадача 1.1", "Subtask1 for epic1", NEW, epic1.getId(),
+                LDTRandomizer.getRandomLDT(), 50);
+        Subtask subtask1_2 = new Subtask(0,"Подзадача 1.2", "Subtask2 for epic1", NEW, epic1.getId(),
+                LDTRandomizer.getRandomLDT(), 20);
+        Subtask subtask1_3 = new Subtask(0,"Подзадача 1.3", "Subtask3 for epic1", NEW, epic1.getId(),
+                LDTRandomizer.getRandomLDT(), 100);
         taskManager.addSubtask(subtask1_1);
         taskManager.addSubtask(subtask1_2);
         taskManager.addSubtask(subtask1_3);
@@ -62,10 +68,8 @@ public class HistoryManagerMain {
         taskManager.getEpicById(epic1.getId());
         taskManager.printAllHistory();
 
-        System.out.println();
-        System.out.println("Удаляю все обычные задачи через deleteAllTasks()");
-        taskManager.deleteAllTasks();
-        taskManager.printAllHistory();
     }
+
+
 }
 
