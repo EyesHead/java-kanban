@@ -2,14 +2,15 @@ package server.handlers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import taskManager.exceptions.NotFoundException;
 import taskManager.exceptions.ValidationException;
 import taskManager.interfaces.TaskManager;
 import tasksModels.Task;
 
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -29,81 +30,82 @@ public class TaskHandler extends BaseHandler {
                 handleTasksWithoutId(exchange);
             } else {
                 System.out.println("Invalid URL/Path: " + path);
-                sendResponse(exchange, "Invalid URL/Path", 400);
+                sendURLErrorResponse(exchange, path);
             }
         } catch (Exception e) {
-            sendErrorResponse(exchange, Arrays.toString(e.getStackTrace()), 500);
+            sendServerErrorResponse(exchange, Arrays.toString(e.getStackTrace()));
         }
     }
 
-    private void handleTaskById(HttpExchange exchange, String path) throws IOException {
-        int id = parsePathToId(path.replace("/tasks/", ""));
-        if (id != -1) {
+    private void handleTaskById(HttpExchange exchange, String path)
+        throws IOException {
+        try {
+            int id = Integer.parseInt(path.replace("/tasks/", "")); //400 NFE
+
             String method = exchange.getRequestMethod();
             switch (method) {
                 case "GET":
                     try {
-                        Task task = manager.getTaskById(id);
+                        Task task = manager.getTaskById(id); //404 not found exception
                         sendResponse(exchange, gson.toJson(task), 200);
                         break;
                     } catch (NotFoundException e) {
-                        sendErrorResponse(exchange,
-                                "Task with id "+id+" does`t exist", 404);
-                        break;
+                        sendNotFoundResponse(exchange);
                     }
                 case "DELETE":
                     manager.deleteTaskById(id);
-                    sendResponse(exchange, "Task was deleted", 200);
+                    sendDeleteResponse(exchange, "Task");
                     break;
                 default:
                     System.out.println("Method not allowed here: " + method);
-                    sendResponse(exchange, "Method not allowed here: " + method, 405);
+                    sendMethodErrorResponse(exchange, method);
             }
-        } else {
-            System.out.println("Invalid Id!");
-            sendResponse(exchange, "Invalid Id!", 400);
+        } catch (NumberFormatException e) {
+            sendIdErrorResponse(exchange);
         }
     }
 
-    private void handleTasksWithoutId(HttpExchange exchange) throws IOException {
+    private void handleTasksWithoutId(HttpExchange exchange)
+            throws IOException, InvalidParameterException, ValidationException {
         String method = exchange.getRequestMethod();
-        if ("GET".equalsIgnoreCase(method)) {
-            String responseTasks = gson.toJson(manager.getTasksAsList());
-            sendResponse(exchange, responseTasks, 200);
+        switch (method) {
+            case "GET":
+                String responseTasks = gson.toJson(manager.getTasksAsList());
+                sendResponse(exchange, responseTasks, 200);
+            case "POST":
+                String requestBody = readText(exchange);
+                JsonObject taskJson = gson.fromJson(requestBody, JsonObject.class);
 
-        } else if ("POST".equalsIgnoreCase(method)) {
-            String requestBody = readText(exchange);
-            JsonObject taskJson = gson.fromJson(requestBody, JsonObject.class);
+                try {
+                    validateTaskJson(taskJson); //400 Json Syntax Exception
+                } catch (JsonSyntaxException e) {
+                    sendJsonErrorResponse(exchange);
+                }
 
-            if (isValidTaskJson(taskJson)) {
                 if (taskJson.has("id")) { // Task UPDATE
+                    Task taskUpdated = gson.fromJson(taskJson, Task.class);
                     try {
-                        Task taskUpdated = gson.fromJson(taskJson, Task.class);
-                        manager.updateTask(taskUpdated);
+                        manager.updateTask(taskUpdated); //400 Invalid Parameter
                         sendResponse(exchange, "Task updated successfully", 201);
-                    } catch (ValidationException e) {
-                            sendErrorResponse(exchange, "Tasks overlaps", 406);
+                    } catch (InvalidParameterException e) {
+                        sendParameterErrorResponse(exchange, String.valueOf(taskJson.get("id")));
                     }
+                    break;
                 } else { // Task CREATE
                     Task newTask = gson.fromJson(taskJson, Task.class);
                     try {
-                        manager.createTask(newTask);
+                        manager.createTask(newTask); // 406 overlap
                         System.out.println("Task created");
-                        sendResponse(exchange, "Task created successfully", 201);
+                        sendCreateResponse(exchange, "Task");
                     } catch (ValidationException e) {
-                        sendErrorResponse(exchange, "Validation Error", 406);
+                        sendOverlapErrorResponse(exchange);
                     }
+                    break;
                 }
-            } else {
-                System.out.println("Invalid task data");
-                sendResponse(exchange, "Invalid task data", 400);
-            }
 
-        } else {
-            System.out.println("Method not supported: " + method);
-            sendResponse(exchange, "Method not supported: " + method, 405);
+            default:
+                System.out.println("Method not supported: " + method);
+                sendMethodErrorResponse(exchange,  method);
         }
     }
-
-
 }

@@ -7,6 +7,7 @@ import tasksModels.Epic;
 import tasksModels.Subtask;
 import tasksModels.Task;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -22,22 +23,22 @@ public interface TaskManager {
     void deleteAllEpics();
     void deleteAllSubtasks();
 
-    void deleteTaskById(int taskId) throws NotFoundException;
-    void deleteEpicById(int epicId) throws NotFoundException;
-    void deleteSubtaskById(int subtaskId) throws NotFoundException;
+    void deleteTaskById(int taskId);
+    void deleteEpicById(int epicId);
+    void deleteSubtaskById(int subtaskId);
     void deleteAll();
 
     //методы обновления
-    void updateTask(Task task) throws ValidationException, NotFoundException;
-    void updateSubtask(Subtask subtask) throws ValidationException, NotFoundException;
+    void updateTask(Task task) throws InvalidParameterException;
+    void updateSubtask(Subtask subtask) throws InvalidParameterException;
 
     Set<Task> getPrioritizedTasks();
 
     //геттеры, добавляющие задачи в historyManager
     Task getTaskById(int taskId) throws NotFoundException;
     Epic getEpicById(int epicId) throws NotFoundException;
-    List<Subtask> getEpicSubtasks(int epicId);
-    Subtask getSubtaskById(int subtaskId);
+    List<Subtask> getEpicSubtasks(int epicId) throws NotFoundException;
+    Subtask getSubtaskById(int subtaskId) throws NotFoundException;
     InMemoryHistoryManager getHistoryManager();
 
     //гетеры, но без управления historyManager

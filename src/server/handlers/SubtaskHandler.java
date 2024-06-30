@@ -2,14 +2,15 @@ package server.handlers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
-import taskManager.exceptions.InvalidSubtaskDataException;
 import taskManager.exceptions.NotFoundException;
 import taskManager.exceptions.ValidationException;
 import taskManager.interfaces.TaskManager;
 import tasksModels.Subtask;
 
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -29,95 +30,97 @@ public class SubtaskHandler extends BaseHandler {
                 handleSubtaskWithoutId(exchange);
             } else {
                 System.out.println("Invalid URL/Path: " + path);
-                sendResponse(exchange, "Invalid URL/Path", 400);
+                sendURLErrorResponse(exchange, path);
             }
         } catch (Exception e) {
-            sendErrorResponse(exchange, Arrays.toString(e.getStackTrace()), 500);
+            sendServerErrorResponse(exchange, Arrays.toString(e.getStackTrace()));
         }
     }
 
-    private void handleSubtaskById(HttpExchange exchange, String path) throws IOException {
-        int id = parsePathToId(path.replace("/subtasks/", ""));
-        if (id != -1) {
+    private void handleSubtaskById(HttpExchange exchange, String path)
+            throws IOException {
+        try {
+            int id = Integer.parseInt(path.replace("/subtasks/", ""));
             String method = exchange.getRequestMethod();
             switch (method) {
                 case "GET":
                     try {
-                        Subtask subtask = manager.getSubtaskById(id);
+                        Subtask subtask = manager.getSubtaskById(id); // 404 not found exc
                         sendResponse(exchange, gson.toJson(subtask), 200);
-                        break;
                     } catch (NotFoundException e) {
-                        sendErrorResponse(exchange,
-                                "Subtask with id "+id+" does`t exist", 404);
-                        break;
+                        sendNotFoundResponse(exchange);
                     }
+                    break;
                 case "DELETE":
                     manager.deleteSubtaskById(id);
-                    sendResponse(exchange, "Subtask was deleted", 200);
+                    sendDeleteResponse(exchange, "Subtask");
                     break;
                 default:
                     System.out.println("Method not allowed here: " + method);
-                    sendResponse(exchange, "Method not allowed here: " + method, 405);
+                    sendMethodErrorResponse(exchange, method);
             }
-        } else {
-            System.out.println("Invalid Id!");
-            sendResponse(exchange, "Invalid Id!", 400);
+        } catch (NumberFormatException e) {
+            sendIdErrorResponse(exchange);
         }
     }
 
-    private void handleSubtaskWithoutId(HttpExchange exchange) throws IOException {
+    private void handleSubtaskWithoutId(HttpExchange exchange)
+            throws IOException {
         String method = exchange.getRequestMethod();
-        if ("GET".equalsIgnoreCase(method)) {
-            String responseSubtasks = gson.toJson(manager.getSubtasksAsList());
-            sendResponse(exchange, responseSubtasks, 200);
-        } else if ("POST".equalsIgnoreCase(method)) {
-            String requestBody = readText(exchange);
-            JsonObject subtaskJson = gson.fromJson(requestBody, JsonObject.class);
+        switch (method) {
+            case "GET":
+                String responseSubtasks = gson.toJson(manager.getSubtasksAsList());
+                sendResponse(exchange, responseSubtasks, 200);
+                break;
 
-            if (isValidSubtaskJson(subtaskJson)) {
+            case "POST":
+                String requestBody = readText(exchange);
+                JsonObject subtaskJson = gson.fromJson(requestBody, JsonObject.class);
+
+                try {
+                    isValidSubtaskJson(subtaskJson);
+                } catch (JsonSyntaxException e) {
+                    sendJsonErrorResponse(exchange);
+                }
+
                 if (subtaskJson.has("id")) { // Task UPDATE
                     updateSubtaskOnServer(subtaskJson, exchange);
                 } else { // Task CREATE
                     createSubtaskOnServer(subtaskJson, exchange);
                 }
-            } else {
-                System.out.println("Invalid subtask data");
-                sendResponse(exchange, "Invalid subtask data", 400);
-            }
-
-        } else {
-            System.out.println("Method not supported: " + method);
-            sendResponse(exchange, "Method not supported: " + method, 405);
+                break;
+            default:
+                System.out.println("Method not supported: " + method);
+                sendMethodErrorResponse(exchange, method);
         }
     }
 
-    private void createSubtaskOnServer(JsonObject subtaskJson,
-                                       HttpExchange exchange) throws IOException {
+    private void createSubtaskOnServer(JsonObject subtaskJson, HttpExchange exchange)
+            throws IOException {
         Subtask newSubtask = gson.fromJson(subtaskJson, Subtask.class);
         try {
-            manager.createSubtask(newSubtask);
+            manager.createSubtask(newSubtask); //406 overlap exception
             System.out.println("Task created");
-            sendResponse(exchange, "Task created successfully", 201);
-        } catch (InvalidSubtaskDataException e) {
-            sendErrorResponse(exchange, "Incorrect epic id", 400);
+            sendCreateResponse(exchange, "Task");
         } catch (ValidationException e) {
-            sendErrorResponse(exchange, "Validation Error", 406);
+            sendOverlapErrorResponse(exchange);
         }
     }
 
-    private void updateSubtaskOnServer(JsonObject subtaskJson,
-                                       HttpExchange exchange) throws IOException {
+    private void updateSubtaskOnServer(JsonObject subtaskJson, HttpExchange exchange)
+            throws IOException {
+        Subtask subtask = gson.fromJson(subtaskJson, Subtask.class);
         try {
-            Subtask taskUpdated = gson.fromJson(subtaskJson, Subtask.class);
-            manager.updateTask(taskUpdated);
-            sendResponse(exchange, "Task updated successfully", 201);
-        } catch (ValidationException e) {
-            sendErrorResponse(exchange, "Tasks overlaps", 406);
+            manager.updateSubtask(subtask); //400 Invalid Parameter exc
+            sendUpdateResponse(exchange, "Task");
+        } catch (InvalidParameterException e) {
+            sendParameterErrorResponse(exchange, subtask.getId().toString());
         }
     }
 
 
-    private boolean isValidSubtaskJson(JsonObject subtaskJson) {
-        return super.isValidTaskJson(subtaskJson) && subtaskJson.has("epicId");
+    private void isValidSubtaskJson(JsonObject subtaskJson) throws JsonSyntaxException {
+        super.validateTaskJson(subtaskJson);
+        if (!subtaskJson.has("id")) throw new JsonSyntaxException("Subtask id is missing");
     }
 }
