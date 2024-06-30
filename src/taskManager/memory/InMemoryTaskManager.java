@@ -1,12 +1,12 @@
 package taskManager.memory;
 
 import managersCreator.Managers;
-import taskManager.exceptions.InvalidSubtaskDataException;
 import taskManager.exceptions.NotFoundException;
 import taskManager.exceptions.ValidationException;
 import taskManager.interfaces.TaskManager;
 import tasksModels.*;
 
+import java.security.InvalidParameterException;
 import java.util.*;
 import static tasksModels.Status.DONE;
 
@@ -59,6 +59,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
     @Override
     public List<Subtask> getEpicSubtasks(int epicId) {
+        if (!epics.containsKey(epicId)) {
+            throw new NotFoundException("Эпик с id = " + epicId + " - не найден");
+        }
         return epics.get(epicId).getSubtasks();
     }
 
@@ -73,7 +76,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void createTask(Task task) {
+    public void createTask(Task task) throws ValidationException {
         task.setId(generateId());
         validateTaskTime(task); // VALIDATION EXCEPTION HERE
         prioritizedTasks.add(task);
@@ -85,11 +88,11 @@ public class InMemoryTaskManager implements TaskManager {
         epics.put(epic.getId(), epic);
     }
     @Override
-    public void createSubtask(Subtask subtask) throws InvalidSubtaskDataException, ValidationException {
+    public void createSubtask(Subtask subtask) throws ValidationException, InvalidParameterException {
         int epicId = subtask.getEpicId();
 
         if (!epics.containsKey(epicId)) {
-            throw new InvalidSubtaskDataException("Некорректно указан epicId у подзадачи");
+            throw new InvalidParameterException("Некорректно указан epicId у подзадачи");
         }
         subtask.setId(generateId());
 
@@ -108,10 +111,10 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateTask(Task updatedTask) throws ValidationException, NotFoundException {
+    public void updateTask(Task updatedTask) throws InvalidParameterException {
         Task original = tasks.get(updatedTask.getId());
         if (original == null)
-            throw new NotFoundException("Task with id " + updatedTask.getId() + " not found");
+            throw new InvalidParameterException("Task with id " + updatedTask.getId() + " not found");
 
         // обновление задачи в приоритизированном списке
         prioritizedTasks.remove(original);
@@ -120,21 +123,19 @@ public class InMemoryTaskManager implements TaskManager {
         tasks.put(updatedTask.getId(), updatedTask);
     }
     @Override
-    public void updateSubtask(Subtask updatedSubtask) throws ValidationException, NotFoundException {
+    public void updateSubtask(Subtask updatedSubtask) throws InvalidParameterException {
         Subtask originalSub = subtasks.get(updatedSubtask.getId());
         if (originalSub == null)
-            throw new NotFoundException("Task with id " + updatedSubtask.getId() + " not found");
+            throw new InvalidParameterException("Task with id " + updatedSubtask.getId() + " not found");
 
         Epic epic = epics.get(updatedSubtask.getEpicId());
         // полный перерасчёт времени начала, конца, длительности и статуса ЭПИКа
         epic.removeTask(originalSub);
         epic.addTask(updatedSubtask);
-        // обновление задачи в приоритизированном списке
 
-        validateTaskTime(updatedSubtask);
+        // обновление задачи в приоритизированном списке (без валидации на пересечение)
         prioritizedTasks.remove(originalSub);
         prioritizedTasks.add(updatedSubtask);
-
 
         subtasks.put(updatedSubtask.getId(), updatedSubtask);
         epics.put(epic.getId(), epic);
@@ -176,12 +177,16 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteTaskById(int taskId) {
+        if (!tasks.containsKey(taskId)) return;
+
         prioritizedTasks.remove(tasks.get(taskId));
         historyManager.remove(taskId);
         tasks.remove(taskId);
     }
     @Override
     public void deleteEpicById(int epicId) {
+        if (!epics.containsKey(epicId)) return;
+
         ArrayList<Subtask> subtaskList = (ArrayList<Subtask>) epics.get(epicId).getSubtasks();
         if (subtaskList != null && !subtaskList.isEmpty()) {
             // Удаляем все подзадачи эпика из prioritizedTasks, subtasks и historyManager
@@ -198,6 +203,8 @@ public class InMemoryTaskManager implements TaskManager {
     }
     @Override
     public void deleteSubtaskById(int subtaskId) {
+        if (!subtasks.containsKey(subtaskId)) return;
+
         Subtask subtask = subtasks.get(subtaskId);
         Epic epic = epics.get(subtask.getEpicId());
 
