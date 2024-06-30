@@ -1,17 +1,14 @@
-package managers.memory_classes;
+package taskManager.memory;
 
-import managers.Managers;
-import managers.custom_exceptions.ManagerIOException;
-import models.*;
+import managersCreator.Managers;
+import taskManager.exceptions.ManagerIOException;
+import tasksModels.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
-
-import static models.TaskType.EPIC;
-import static models.TaskType.TASK;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final Path path;
@@ -40,56 +37,49 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private void loadFromFile() {
-        /*
-        1) ЗАГРУЖАЕМЫЙ ФАЙЛ МОЖЕТ ВЫГЛЯДЕТЬ СЛЕДУЩИМ ОБРАЗОМ
-        id = 0 TASK DATA
-        id = 5 SUBTASK DATA
-        id = 1 EPIC DATA
-        и т.д, если добавлять задачи одну за другой, то они получат id по порядку, так как методы addTask, addSubtask,
-        addEpic генерируют id по порядку
-        Решение:
-        Сначала задачи записываются в TreeSet<Task> allTasks, который сортирует их по id, только после этого
-        отсортированные задачи добавляются в менеджер в нужном порядке
-
-        2) Ищем максимальный id, чтобы при добавлении новых задач в файл после загрузки из файла
-        у новых добавляемых задач id не повторялись со старыми (см. реализацию generateId())
-         */
         int maxId = 0;
-        try (final BufferedReader reader = new BufferedReader(new FileReader(path.toFile(), StandardCharsets.UTF_8))){
-            reader.readLine();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(path.toFile(), StandardCharsets.UTF_8))) {
+            reader.readLine(); // Пропускаем заголовок
+
             while (reader.ready()) {
                 String line = reader.readLine();
-
-                final Task task = fromString(line);
+                Task task = fromString(line);
                 maxId = Math.max(maxId, task.getId());
-
-                    switch (task.getType()) {
-                        case TASK:
-                            tasks.put(task.getId(), task);
-                            continue;
-                        case EPIC:
-                            epics.put(task.getId(), (Epic) task);
-                            continue;
-                        case SUBTASK:
-                            subtasks.put(task.getId(), (Subtask) task);
-                            continue;
-                    }
+                addTaskToManager(task);
             }
+
             id = maxId;
         } catch (ManagerIOException | IOException e) {
             throw new RuntimeException("Ошибка при восстановлении менеджера из файла: " + e.getMessage());
         }
 
-        // Связываем подзадачи из таблицы со всеми эпиками и обновляем статус у эпиков
+        linkSubtasksToEpics();
+        updatePrioritizedList();
+    }
+
+    private void addTaskToManager(Task task) {
+        switch (task.getType()) {
+            case TASK:
+                tasks.put(task.getId(), task);
+                break;
+            case EPIC:
+                epics.put(task.getId(), (Epic) task);
+                break;
+            case SUBTASK:
+                subtasks.put(task.getId(), (Subtask) task);
+                break;
+        }
+    }
+
+    private void linkSubtasksToEpics() {
         for (Subtask subtask : subtasks.values()) {
             Epic epic = getEpicBySubtask(subtask);
-            epic.addTask(subtask); // тут происходит перерасчет статуса, времени и длительности для Epic
+            epic.addTask(subtask);
             epics.put(epic.getId(), epic);
         }
-
-        updatePrioritizedList();
-
     }
+
 
     private void updatePrioritizedList() {
         prioritizedTasks.addAll(tasks.values());
@@ -113,17 +103,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
         LocalDateTime startTime = LocalDateTime.parse(taskData[7]);
 
-        switch (type) {
-            case TASK:
-                return new Task(id, name, description, status, startTime, duration);
-            case EPIC:
-                return new Epic(id, name, description, status, startTime, duration);
-            case SUBTASK:
+        return switch (type) {
+            case TASK -> new Task(id, name, description, status, startTime, duration);
+            case EPIC -> new Epic(id, name, description, status, startTime, duration);
+            case SUBTASK -> {
                 int epicId = Integer.parseInt(taskData[5]);
-                return new Subtask(id, name, description, status, epicId, startTime, duration);
-
-        }
-        throw new ManagerIOException("Задача не была прочтена");
+                yield new Subtask(id, name, description, status, epicId, startTime, duration);
+            }
+        };
     }
 
     private void save() {
@@ -148,8 +135,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void addTask(Task task) {
-        super.addTask(task);
+    public void createTask(Task task) {
+        super.createTask(task);
         try {
             save();
         } catch (ManagerIOException e) {
@@ -158,8 +145,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     }
     @Override
-    public void addEpic(Epic epic) {
-        super.addEpic(epic);
+    public void createEpic(Epic epic) {
+        super.createEpic(epic);
         try {
             save();
         } catch (ManagerIOException e) {
@@ -167,8 +154,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
     @Override
-    public void addSubtask(Subtask subtask) {
-        super.addSubtask(subtask);
+    public void createSubtask(Subtask subtask) {
+        super.createSubtask(subtask);
         try {
             save();
         } catch (ManagerIOException e) {

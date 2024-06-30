@@ -1,7 +1,7 @@
-package managers.memory_classes;
+package taskManager.memory;
 
-import managers.interfaces.HistoryManager;
-import models.Task;
+import taskManager.interfaces.HistoryManager;
+import tasksModels.Task;
 
 import java.util.ArrayList;
 import java.util.HashMap;

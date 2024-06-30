@@ -1,4 +1,4 @@
-package managers.custom_exceptions;
+package taskManager.exceptions;
 
 public class NotFoundException extends RuntimeException {
     public NotFoundException() {

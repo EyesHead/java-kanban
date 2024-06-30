@@ -1,4 +1,4 @@
-package managers.custom_exceptions;
+package taskManager.exceptions;
 
 public class ValidationException extends RuntimeException {
     public ValidationException() {

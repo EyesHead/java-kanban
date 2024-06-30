@@ -1,8 +1,8 @@
-package managers;
+package managersCreator;
 
-import managers.memory_classes.FileBackedTaskManager;
-import managers.memory_classes.InMemoryHistoryManager;
-import managers.memory_classes.InMemoryTaskManager;
+import taskManager.memory.FileBackedTaskManager;
+import taskManager.memory.InMemoryHistoryManager;
+import taskManager.memory.InMemoryTaskManager;
 
 public class Managers {
     public static FileBackedTaskManager getDefaultFileManager() {
@@ -16,4 +16,5 @@ public class Managers {
     public static InMemoryHistoryManager getDefaultHistory() {
         return new InMemoryHistoryManager();
     }
+
 }

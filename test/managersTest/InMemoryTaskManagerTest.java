@@ -1,19 +1,16 @@
 package managersTest;
 
-import managers.Managers;
-import managers.memory_classes.FileBackedTaskManager;
-import managers.memory_classes.InMemoryTaskManager;
-import managers.interfaces.HistoryManager;
-import models.Epic;
-import models.Subtask;
-import models.Task;
+import managersCreator.Managers;
+import taskManager.memory.InMemoryTaskManager;
+import tasksModels.Subtask;
+import tasksModels.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
 
-import static models.Status.*;
+import static tasksModels.Status.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /*
@@ -37,10 +34,10 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
     @Test
     void testEpicNew() {
         initEpic();
-        manager.addEpic(epic);
+        manager.createEpic(epic);
         initSubtasks();
-        manager.addSubtask(subtaskA);
-        manager.addSubtask(subtaskB);
+        manager.createSubtask(subtaskA);
+        manager.createSubtask(subtaskB);
 
         assertEquals(NEW, manager.getEpicsAsList().getFirst().getStatus(),"Статус эпика должен быть NEW");
         assertEquals(NEW, manager.getSubtasksAsList().getFirst().getStatus(),"Статус подзадачи A должен быть NEW!");
@@ -51,10 +48,10 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
     @Test
     void testEpicInProgress() {
         initEpic();
-        manager.addEpic(epic);
+        manager.createEpic(epic);
         initSubtasks();
-        manager.addSubtask(subtaskA);
-        manager.addSubtask(subtaskB);
+        manager.createSubtask(subtaskA);
+        manager.createSubtask(subtaskB);
 
         // Обновляем статус SubtaskA на IN_PROGRESS => статус эпика меняется на IN_PROGRESS
         Subtask subtaskAUpdated = subtaskA;
@@ -89,15 +86,15 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
     @Test
     void testEpicDone() {
         initEpic();
-        manager.addEpic(epic);
+        manager.createEpic(epic);
         initSubtasks();
-        manager.addSubtask(subtaskA);
-        manager.addSubtask(subtaskB);
+        manager.createSubtask(subtaskA);
+        manager.createSubtask(subtaskB);
 
         Subtask subtaskADone = new Subtask(subtaskA.getId(),"Done A Subtask", "some description a",
-                DONE, epic.getId(), subtaskA.getStartTime(), subtaskA.getDurationInMinutes());
+                DONE, epic.getId(), subtaskA.getStartTime(), subtaskA.getDuration());
         Subtask subtaskBDone = new Subtask(subtaskB.getId(),"Done B Subtask", "some description b", DONE,
-                epic.getId(), subtaskB.getStartTime(), subtaskB.getDurationInMinutes());
+                epic.getId(), subtaskB.getStartTime(), subtaskB.getDuration());
         subtaskADone.setId(subtaskA.getId());
         subtaskBDone.setId(subtaskB.getId());
         manager.updateSubtask(subtaskADone);
@@ -113,12 +110,12 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
     @Test
     void updateTask() {
         initTasks();
-        manager.addTask(task1);
-        manager.addTask(task2);
+        manager.createTask(task1);
+        manager.createTask(task2);
 
         // Хотим обновить ВТОРУЮ задачу (с id = 2)
         Task newTask = new Task(2, "Обновленная задача", "Какое-то описание", IN_PROGRESS,
-                task1.getStartTime(), task1.getDurationInMinutes());
+                task1.getStartTime(), task1.getDuration());
         newTask.setId(task2.getId());
         manager.updateTask(newTask);
 
@@ -134,8 +131,8 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
     @Test
     void deleteAllTasksAndCheckHistory() {
         initTasks();
-        manager.addTask(task1);
-        manager.addTask(task2);
+        manager.createTask(task1);
+        manager.createTask(task2);
         manager.getTaskById(task1.getId());
         manager.getTaskById(task2.getId());
         assertEquals(List.of(task1, task2), manager.getHistoryManager().getAll(),

@@ -1,4 +1,4 @@
-package managers.custom_exceptions;
+package taskManager.exceptions;
 
 public class ManagerIOException extends RuntimeException {
     public ManagerIOException() {

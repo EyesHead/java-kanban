@@ -1,7 +1,7 @@
-package program_behavior_tests;
+package tests;
 
-import managers.memory_classes.FileBackedTaskManager;
-import models.*;
+import taskManager.memory.FileBackedTaskManager;
+import tasksModels.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static models.Status.*;
+import static tasksModels.Status.*;
 
 public class FileManagerMain {
     public static void main(String[] args) throws IOException {
@@ -43,26 +43,26 @@ public class FileManagerMain {
 
         Task task1 = new Task("Имя Задачи1", "Описание задачи1", NEW,
                 LocalDateTime.of(2022, 12, 13, 12, 45), 15);
-        fileManager.addTask(task1);
+        fileManager.createTask(task1);
 
         Task task2 = new Task("Имя Задачи2", "Описание задачи2", NEW,
                 LocalDateTime.of(2023, 2, 27, 2, 15), 200);
-        fileManager.addTask(task2);
+        fileManager.createTask(task2);
 
         Epic epic1 = new Epic("Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
-        fileManager.addEpic(epic1);
+        fileManager.createEpic(epic1);
 
         Subtask subtask1_1 = new Subtask("Подзадача 1.1", "Subtask1 for epic1", NEW, epic1.getId(),
                 LocalDateTime.of(2021, 2, 27, 1, 50), 50);
-        fileManager.addSubtask(subtask1_1);
+        fileManager.createSubtask(subtask1_1);
 
         Subtask subtask1_2 = new Subtask("Подзадача 1.2", "Subtask2 for epic1", IN_PROGRESS, epic1.getId(),
                 LocalDateTime.of(2023, 3, 27, 2, 15), 200);
-        fileManager.addSubtask(subtask1_2);
+        fileManager.createSubtask(subtask1_2);
 
         Subtask subtask1_3 = new Subtask("Подзадача 1.3", "Subtask3 for epic1", DONE, epic1.getId(),
                 LocalDateTime.of(2025, 4, 26, 23, 35), 25);
-        fileManager.addSubtask(subtask1_3);
+        fileManager.createSubtask(subtask1_3);
 
         return fileManager;
     }

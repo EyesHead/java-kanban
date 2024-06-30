@@ -1,34 +1,28 @@
-package models;
+package tasksModels;
 import java.time.*;
 import java.util.Objects;
-import java.util.TimeZone;
+
+import static tasksModels.TaskType.TASK;
 
 
 public class Task {
+    protected TaskType type;
     private Integer id;
     private final String name;
     private final String description;
     protected Status status;
-    protected Duration duration;
+    protected int duration;
     protected LocalDateTime startTime;
-
-    protected LocalDateTime DEFAULT_LOCAL_DATE_TIME_START =
-            LocalDateTime.ofInstant(Instant.ofEpochMilli(0),
-                    TimeZone.getDefault().toZoneId());
-    protected int DEFAULT_DURATION = 60;
-    protected LocalDateTime DEFAULT_LOCAL_DATE_TIME_END =
-            LocalDateTime.ofInstant(Instant.ofEpochMilli(0),
-                    TimeZone.getDefault().toZoneId()).plusMinutes(DEFAULT_DURATION);
-
 
 
     // стандартный способ создания новой задачи
     public Task(String name, String description, Status status,
-                LocalDateTime startTime, int durationMinutes) {
+                LocalDateTime startTime, int duration) {
+        this.type = TASK;
         this.name = name;
         this.description = description;
         this.status = status;
-        this.duration = Duration.ofMinutes(durationMinutes);
+        this.duration = duration;
         this.startTime = startTime;
     }
 
@@ -61,15 +55,15 @@ public class Task {
     }
 
     public LocalDateTime getEndTime() {
-        return startTime.plus(duration);
+        return startTime.plus(Duration.ofMinutes(duration));
     }
 
-    public int getDurationInMinutes() {
-        return (int) this.duration.toMinutes();
+    public int getDuration() {
+        return duration;
     }
 
     public TaskType getType() {
-        return TaskType.TASK;
+        return TASK;
     }
 
     public Integer getEpicId() {
@@ -84,8 +78,8 @@ public class Task {
         this.id = id;
     }
 
-    public void setDuration(int minutes) {
-        this.duration = Duration.ofMinutes(minutes);
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 
     @Override
@@ -103,7 +97,8 @@ public class Task {
 
     @Override
     public String toString() {
-        return String.format("%d,%s,%s,%s,%s,%d,%d,%s\n",
-                id, getType(), name, status, description, getEpicId(), getDurationInMinutes(), getStartTime());
+        return String.format("%d,%s,%s,%s,%s,%d,%d,%s%s",
+                id, getType(), name, status, description, getEpicId(), getDuration(), getStartTime(),
+                System.lineSeparator());
     }
 }

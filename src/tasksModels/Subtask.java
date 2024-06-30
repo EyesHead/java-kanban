@@ -1,4 +1,4 @@
-package models;
+package tasksModels;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -9,11 +9,13 @@ public class Subtask extends Task {
     public Subtask(int id, String name, String description, Status status, int epicId,
                    LocalDateTime startTime, int duration) {
         super(id, name, description, status, startTime, duration);
+        this.type = TaskType.SUBTASK;
         this.epicId = epicId;
     }
     public Subtask(String name, String description, Status status, int epicId,
                    LocalDateTime startTime, int duration) {
         super(name, description, status, startTime, duration);
+        this.type = TaskType.SUBTASK;
         this.epicId = epicId;
     }
 

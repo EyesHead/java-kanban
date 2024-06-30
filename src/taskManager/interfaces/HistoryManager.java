@@ -1,5 +1,5 @@
-package managers.interfaces;
-import models.*;
+package taskManager.interfaces;
+import tasksModels.*;
 
 import java.util.List;
 
