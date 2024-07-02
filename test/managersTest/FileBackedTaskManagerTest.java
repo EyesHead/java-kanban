@@ -1,9 +1,9 @@
 package managersTest;
 
-import managers.memory_classes.FileBackedTaskManager;
-import models.Epic;
-import models.Subtask;
-import models.Task;
+import taskManager.memory.FileBackedTaskManager;
+import tasksModels.Epic;
+import tasksModels.Subtask;
+import tasksModels.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import static models.Status.*;
+import static tasksModels.Status.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,15 +46,15 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     void testEpicNew() {
         // эпик в менеджере уже new, добавим парочку для тестов
         initEpic();
-        manager.addEpic(epic);
+        manager.createEpic(epic);
         initSubtasks();
-        manager.addSubtask(subtaskA);
-        manager.addSubtask(subtaskB);
-        manager.addSubtask(subtaskC);
+        manager.createSubtask(subtaskA);
+        manager.createSubtask(subtaskB);
+        manager.createSubtask(subtaskC);
         Epic newEpic1 = new Epic("Новый эпик", "Какое-то описание (фантазия на уровне)", NEW);
         Epic newEpic2 = new Epic("Ещё эпик", "Супер-оригинальное описание", NEW);
-        manager.addEpic(newEpic1);
-        manager.addEpic(newEpic2);
+        manager.createEpic(newEpic1);
+        manager.createEpic(newEpic2);
         assertEquals(manager.getEpicsAsList().size(), 3, "Эпик не был добавлен в менеджер");
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(manager.getPath());
@@ -71,10 +71,10 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     @Test
     void testEpicInProgress() {
         initEpic();
-        manager.addEpic(epic);
+        manager.createEpic(epic);
         initSubtasks();
-        manager.addSubtask(subtaskA);
-        manager.addSubtask(subtaskB);
+        manager.createSubtask(subtaskA);
+        manager.createSubtask(subtaskB);
 
         subtaskA.setStatus(IN_PROGRESS);
         subtaskB.setStatus(DONE);
