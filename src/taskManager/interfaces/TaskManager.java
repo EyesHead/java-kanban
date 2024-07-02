@@ -1,22 +1,21 @@
 package taskManager.interfaces;
 
 import taskManager.exceptions.NotFoundException;
-import taskManager.exceptions.ValidationException;
+import taskManager.exceptions.OverlapValidationException;
 import taskManager.memory.InMemoryHistoryManager;
 import tasksModels.Epic;
 import tasksModels.Subtask;
 import tasksModels.Task;
 
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public interface TaskManager {
     //методы добавления
-    void createTask(Task task) throws ValidationException;
+    void createTask(Task task) throws OverlapValidationException;
     void createEpic(Epic epic);
-    void createSubtask(Subtask subtask) throws ValidationException;
+    void createSubtask(Subtask subtask) throws OverlapValidationException;
 
     //методы удаления
     void deleteAllTasks();
@@ -29,8 +28,8 @@ public interface TaskManager {
     void deleteAll();
 
     //методы обновления
-    void updateTask(Task task) throws InvalidParameterException;
-    void updateSubtask(Subtask subtask) throws InvalidParameterException;
+    void updateTask(Task task);
+    void updateSubtask(Subtask subtask);
 
     Set<Task> getPrioritizedTasks();
 

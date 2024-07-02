@@ -136,6 +136,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @DisplayName("Обновить статус и время у существующей задачи и проверить, что она изменилась в менеджере")
     @Test
     void updateSubtask() {
+        initTasks();
         manager.createTask(task1);
         Task task1Done = task1;
 

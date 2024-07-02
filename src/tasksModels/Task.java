@@ -11,7 +11,7 @@ public class Task {
     private final String name;
     private final String description;
     protected Status status;
-    protected int duration;
+    protected Duration duration;
     protected LocalDateTime startTime;
 
 
@@ -22,14 +22,14 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = status;
-        this.duration = duration;
+        this.duration = Duration.ofSeconds(duration);
         this.startTime = startTime;
     }
 
     // параметр id указывается для обновления задачи с тем же id в менеджере и загрузки из файла
     public Task(int id, String name, String description, Status status,
-                LocalDateTime startTime, int durationMinutes) {
-        this(name, description, status, startTime, durationMinutes);
+                LocalDateTime startTime, int duration) {
+        this(name, description, status, startTime, duration);
         this.id = id;
     }
 
@@ -55,10 +55,10 @@ public class Task {
     }
 
     public LocalDateTime getEndTime() {
-        return startTime.plus(Duration.ofMinutes(duration));
+        return startTime.plus(duration);
     }
 
-    public int getDuration() {
+    public Duration getDuration() {
         return duration;
     }
 
@@ -79,7 +79,7 @@ public class Task {
     }
 
     public void setDuration(int duration) {
-        this.duration = duration;
+        this.duration = Duration.ofSeconds(duration);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class Task {
     @Override
     public String toString() {
         return String.format("%d,%s,%s,%s,%s,%d,%d,%s%s",
-                id, getType(), name, status, description, getEpicId(), getDuration(), getStartTime(),
-                System.lineSeparator());
+                id, getType(), name, status, description, getEpicId(), getDuration().toMinutes(),
+                getStartTime(), System.lineSeparator());
     }
 }

@@ -29,14 +29,14 @@ public class BaseHandler {
         httpExchange.getResponseBody().close();
     }
     //200
-    protected void sendDeleteResponse(HttpExchange httpExchange, String taskType) throws IOException {
-        this.sendResponse(httpExchange, taskType + " was successfully deleted!", 200);
+    protected void sendDeleteResponse(HttpExchange httpExchange, String deleteSuccessText) throws IOException {
+        this.sendResponse(httpExchange, deleteSuccessText, 200);
     }
-    protected void sendCreateResponse(HttpExchange httpExchange, String taskType) throws IOException {
-        this.sendResponse(httpExchange, taskType + " was successfully created!", 201);
+    protected void sendCreateResponse(HttpExchange httpExchange, String createSuccessText) throws IOException {
+        this.sendResponse(httpExchange, createSuccessText, 201);
     }
-    protected void sendUpdateResponse(HttpExchange httpExchange, String taskType) throws IOException {
-        this.sendResponse(httpExchange, taskType + " was successfully created!", 201);
+    protected void sendUpdateResponse(HttpExchange httpExchange, String updateSuccessText) throws IOException {
+        this.sendResponse(httpExchange, updateSuccessText, 201);
     }
 
 
@@ -44,19 +44,16 @@ public class BaseHandler {
     protected void sendIdErrorResponse(HttpExchange httpExchange) throws IOException {
         this.sendResponse(httpExchange, "Not a valid id resource", 400);
     }
-    protected void sendParameterErrorResponse(HttpExchange httpExchange, String parameter) throws IOException {
-        this.sendResponse(httpExchange, "Not a valid parameter: " + parameter, 400);
-    }
     protected void sendJsonErrorResponse(HttpExchange exchange) throws IOException {
-        this.sendResponse(exchange,"Invalid Json entry of task", 400);
+        this.sendResponse(exchange,"Invalid Json entry of Java object", 400);
     }
     protected void sendURLErrorResponse(HttpExchange httpExchange, String path) throws IOException {
         this.sendResponse(httpExchange, "Not a valid path: " + path, 400);
     }
 
     //404
-    protected void sendNotFoundResponse(HttpExchange httpExchange) throws IOException {
-        this.sendResponse(httpExchange, "Not found", 404);
+    protected void sendNotFoundResponse(HttpExchange httpExchange, String responseText) throws IOException {
+        this.sendResponse(httpExchange, responseText, 404);
     }
 
     //405
@@ -65,8 +62,8 @@ public class BaseHandler {
     }
 
     //406
-    protected void sendOverlapErrorResponse(HttpExchange httpExchange) throws IOException {
-        this.sendResponse(httpExchange, "Task overlap with another", 406);
+    protected void sendOverlapErrorResponse(HttpExchange httpExchange, String response) throws IOException {
+        this.sendResponse(httpExchange, response, 406);
     }
 
     //500

@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 public class GsonAdapters {
 
     public static class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
-        private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+            private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
         @Override
         public void write(JsonWriter out, LocalDateTime value) throws IOException {
@@ -27,7 +27,7 @@ public class GsonAdapters {
     public static class DurationAdapter extends TypeAdapter<Duration> {
         @Override
         public void write(JsonWriter out, Duration value) throws IOException {
-            out.value(value.toMinutes());
+            out.value((int) value.toMinutes());
         }
 
         @Override

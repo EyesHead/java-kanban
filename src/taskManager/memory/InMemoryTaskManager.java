@@ -2,7 +2,7 @@ package taskManager.memory;
 
 import managersCreator.Managers;
 import taskManager.exceptions.NotFoundException;
-import taskManager.exceptions.ValidationException;
+import taskManager.exceptions.OverlapValidationException;
 import taskManager.interfaces.TaskManager;
 import tasksModels.*;
 
@@ -41,45 +41,49 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getTaskById(int taskId) throws NotFoundException{
-        Task task = tasks.get(taskId);
-        if (task == null) {
+        if (tasks.get(taskId) == null) {
             throw new NotFoundException("Задача с id = " + taskId + " - не найдена");
         }
         historyManager.add(tasks.get(taskId));
         return tasks.get(taskId);
     }
+
     @Override
     public Epic getEpicById(int epicId) throws NotFoundException{
-        Epic epic = epics.get(epicId);
-        if (epic == null) {
+        if (epics.get(epicId) == null) {
             throw new NotFoundException("Эпик с id = " + epicId + " - не найден");
         }
         historyManager.add(epics.get(epicId));
         return epics.get(epicId);
     }
+
     @Override
-    public List<Subtask> getEpicSubtasks(int epicId) {
-        if (!epics.containsKey(epicId)) {
+    public List<Subtask> getEpicSubtasks(int epicId) throws NotFoundException {
+        if (epics.get(epicId) == null) {
             throw new NotFoundException("Эпик с id = " + epicId + " - не найден");
         }
-        return epics.get(epicId).getSubtasks();
+        return epics.get(epicId).getEpicSubtasks();
     }
 
     @Override
     public Subtask getSubtaskById(int subtaskId) throws NotFoundException {
-        Subtask subtask = subtasks.get(subtaskId);
-        if (subtask == null) {
+        if (subtasks.get(subtaskId) == null) {
             throw new NotFoundException("Подзадача с id = " + subtaskId + " - не найдена");
         }
+
         historyManager.add(subtasks.get(subtaskId));
         return subtasks.get(subtaskId);
     }
 
     @Override
-    public void createTask(Task task) throws ValidationException {
+    public void createTask(Task task) throws OverlapValidationException {
         task.setId(generateId());
-        validateTaskTime(task); // VALIDATION EXCEPTION HERE
-        prioritizedTasks.add(task);
+        try {
+            validateTimeOnOverlap(task); // 406 Validation exc
+            prioritizedTasks.add(task);
+        } catch (OverlapValidationException e) {
+            throw new OverlapValidationException(e.getMessage());
+        }
         tasks.put(task.getId(), task);
     }
     @Override
@@ -88,55 +92,57 @@ public class InMemoryTaskManager implements TaskManager {
         epics.put(epic.getId(), epic);
     }
     @Override
-    public void createSubtask(Subtask subtask) throws ValidationException, InvalidParameterException {
-        int epicId = subtask.getEpicId();
-
-        if (!epics.containsKey(epicId)) {
-            throw new InvalidParameterException("Некорректно указан epicId у подзадачи");
-        }
+    public void createSubtask(Subtask subtask) throws OverlapValidationException {
         subtask.setId(generateId());
-
         // обновляем список подзадач у эпика
         Epic epic = epics.get(subtask.getEpicId());
         epic.addTask(subtask);
-
-        // обновляем статус эпика
-        if (epic.getStatus() == DONE) epic.setStatus(Status.IN_PROGRESS);
-        // обновление задачи в приоритизированном списке
-        validateTaskTime(subtask); //VALIDATION EXCEPTION HERE
-        prioritizedTasks.add(subtask);
+        epic.updateStatus();
 
         subtasks.put(subtask.getId(), subtask);
         epics.put(epic.getId(), epic);
+        try {
+            validateTimeOnOverlap(subtask); //406 Validation exc
+            prioritizedTasks.add(subtask);
+        } catch (OverlapValidationException e) {
+            throw new OverlapValidationException();
+        }
     }
 
     @Override
-    public void updateTask(Task updatedTask) throws InvalidParameterException {
+    public void updateTask(Task updatedTask) throws OverlapValidationException {
         Task original = tasks.get(updatedTask.getId());
         if (original == null)
-            throw new InvalidParameterException("Task with id " + updatedTask.getId() + " not found");
-
+            return;
         // обновление задачи в приоритизированном списке
-        prioritizedTasks.remove(original);
-        prioritizedTasks.add(updatedTask);
-
+        try {
+            prioritizedTasks.remove(original);
+            validateTimeOnOverlap(updatedTask);
+            prioritizedTasks.add(updatedTask);
+        } catch (OverlapValidationException e) {
+            throw new OverlapValidationException();
+        }
         tasks.put(updatedTask.getId(), updatedTask);
     }
     @Override
-    public void updateSubtask(Subtask updatedSubtask) throws InvalidParameterException {
+    public void updateSubtask(Subtask updatedSubtask) throws OverlapValidationException {
         Subtask originalSub = subtasks.get(updatedSubtask.getId());
-        if (originalSub == null)
+        if (originalSub == null) {
             throw new InvalidParameterException("Task with id " + updatedSubtask.getId() + " not found");
-
+        }
         Epic epic = epics.get(updatedSubtask.getEpicId());
         // полный перерасчёт времени начала, конца, длительности и статуса ЭПИКа
         epic.removeTask(originalSub);
         epic.addTask(updatedSubtask);
+        epic.updateStatus();
 
-        // обновление задачи в приоритизированном списке (без валидации на пересечение)
-        prioritizedTasks.remove(originalSub);
-        prioritizedTasks.add(updatedSubtask);
-
+        try {
+            prioritizedTasks.remove(originalSub);
+            validateTimeOnOverlap(updatedSubtask);//406 Validation exc
+            prioritizedTasks.add(updatedSubtask);
+        } catch (OverlapValidationException e) {
+            throw new OverlapValidationException();
+        }
         subtasks.put(updatedSubtask.getId(), updatedSubtask);
         epics.put(epic.getId(), epic);
     }
@@ -161,7 +167,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteAllSubtasks() {
         for (Epic epic : epics.values()) { // очищаем список id подзадач у каждого объекта-эпика в epics
-            epic.setSubtasks(new ArrayList<>());
+            epic.setEpicSubtasks(new ArrayList<>());
         }
 
         prioritizedTasks.removeAll(subtasks.values());
@@ -187,7 +193,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteEpicById(int epicId) {
         if (!epics.containsKey(epicId)) return;
 
-        ArrayList<Subtask> subtaskList = (ArrayList<Subtask>) epics.get(epicId).getSubtasks();
+        ArrayList<Subtask> subtaskList = (ArrayList<Subtask>) epics.get(epicId).getEpicSubtasks();
         if (subtaskList != null && !subtaskList.isEmpty()) {
             // Удаляем все подзадачи эпика из prioritizedTasks, subtasks и historyManager
             subtaskList.forEach(subtask -> {
@@ -210,6 +216,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         // обновляем эпик. Статус обновляется при вызове метода removeTask
         epic.removeTask(subtask);
+        epic.updateStatus();
         epics.put(epic.getId(), epic);
 
         prioritizedTasks.remove(subtask);
@@ -249,7 +256,7 @@ public class InMemoryTaskManager implements TaskManager {
         return epics.get(epicId);
     }
 
-    private void validateTaskTime(Task taskToAdd) throws ValidationException {
+    private void validateTimeOnOverlap(Task taskToAdd) throws OverlapValidationException {
         /*
         1) Рассмотрим 2 события, при которых задачи пересекаются во времени:
         tStart----eStart----tEnd----eEnd
@@ -265,11 +272,11 @@ public class InMemoryTaskManager implements TaskManager {
             if (Objects.equals(existingTask.getId(), taskToAdd.getId())) {continue;}
             if (taskToAdd.getEndTime().isBefore(existingTask.getEndTime()) &&
                     taskToAdd.getEndTime().isAfter(existingTask.getStartTime())) {
-                throw new ValidationException("Временной интервал задачи пересекается с другой задачей.");
+                throw new OverlapValidationException("Временной интервал задачи пересекается с другой задачей.");
 
             } else if (taskToAdd.getStartTime().isBefore(existingTask.getEndTime()) &&
                     taskToAdd.getStartTime().isAfter(existingTask.getStartTime())) {
-                throw new ValidationException("Временной интервал задачи пересекается с другой задачей.");
+                throw new OverlapValidationException("Временной интервал задачи пересекается с другой задачей.");
             }
         }
         // нет ValidationException? значит валидация прошла успешна

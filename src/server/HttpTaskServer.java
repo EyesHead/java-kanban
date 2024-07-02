@@ -13,6 +13,7 @@ import testUtil.LDTRandomizer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class HttpTaskServer {
@@ -34,7 +35,7 @@ public class HttpTaskServer {
         this.taskHandler = new TaskHandler(manager, gson);
         this.subtaskHandler = new SubtaskHandler(manager, gson);
         this.epicHandler = new EpicHandler(manager, gson);
-        this.historyHandler = new HistoryHandler(manager.getHistoryManager(), gson);
+        this.historyHandler = new HistoryHandler(manager, gson);
         this.priorityHandler = new PriorityHandler(manager);
         try {
             server = HttpServer.create(new InetSocketAddress("localhost", PORT), 0);
@@ -70,8 +71,7 @@ public class HttpTaskServer {
     }
 
     public void start() {
-        System.out.println("Сервер запущен на порту " + PORT);
-        System.out.println("http://localhost:" + PORT + "/...");
+        System.out.println("Сервер запущен на сокете: http://localhost:" + PORT);
         server.start();
     }
 
@@ -83,6 +83,8 @@ public class HttpTaskServer {
     public static Gson getGson() {
         return new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new GsonAdapters.LocalDateTimeAdapter())
+                .registerTypeAdapter(Duration.class, new GsonAdapters.DurationAdapter())
+                .serializeNulls()
                 .create();
     }
 

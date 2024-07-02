@@ -92,9 +92,9 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
         manager.createSubtask(subtaskB);
 
         Subtask subtaskADone = new Subtask(subtaskA.getId(),"Done A Subtask", "some description a",
-                DONE, epic.getId(), subtaskA.getStartTime(), subtaskA.getDuration());
+                DONE, epic.getId(), subtaskA.getStartTime(), (int) subtaskA.getDuration().toMinutes());
         Subtask subtaskBDone = new Subtask(subtaskB.getId(),"Done B Subtask", "some description b", DONE,
-                epic.getId(), subtaskB.getStartTime(), subtaskB.getDuration());
+                epic.getId(), subtaskB.getStartTime(), (int) subtaskB.getDuration().toMinutes());
         subtaskADone.setId(subtaskA.getId());
         subtaskBDone.setId(subtaskB.getId());
         manager.updateSubtask(subtaskADone);
@@ -115,7 +115,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
         // Хотим обновить ВТОРУЮ задачу (с id = 2)
         Task newTask = new Task(2, "Обновленная задача", "Какое-то описание", IN_PROGRESS,
-                task1.getStartTime(), task1.getDuration());
+                task1.getStartTime(), (int) task1.getDuration().toMinutes());
         newTask.setId(task2.getId());
         manager.updateTask(newTask);
 

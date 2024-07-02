@@ -1,11 +1,10 @@
 package server.handlers;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import taskManager.exceptions.NotFoundException;
-import taskManager.exceptions.ValidationException;
+import taskManager.exceptions.OverlapValidationException;
 import taskManager.interfaces.TaskManager;
 import tasksModels.Task;
 
@@ -24,10 +23,10 @@ public class TaskHandler extends BaseHandler {
         try (exchange) {
             String path = exchange.getRequestURI().getPath();
             if (Pattern.matches("^/tasks/\\d+$", path)) {
-                handleTaskById(exchange, path);
+                handleTaskPathWithId(exchange, path);
 
             } else if ("/tasks".equals(path)) {
-                handleTasksWithoutId(exchange);
+                handleTaskPathWithoutId(exchange);
             } else {
                 System.out.println("Invalid URL/Path: " + path);
                 sendURLErrorResponse(exchange, path);
@@ -37,7 +36,7 @@ public class TaskHandler extends BaseHandler {
         }
     }
 
-    private void handleTaskById(HttpExchange exchange, String path)
+    private void handleTaskPathWithId(HttpExchange exchange, String path)
         throws IOException {
         try {
             int id = Integer.parseInt(path.replace("/tasks/", "")); //400 NFE
@@ -50,13 +49,14 @@ public class TaskHandler extends BaseHandler {
                         sendResponse(exchange, gson.toJson(task), 200);
                         break;
                     } catch (NotFoundException e) {
-                        sendNotFoundResponse(exchange);
+                        sendNotFoundResponse(exchange, "Task with id " + id + " not found");
                     }
                 case "DELETE":
                     manager.deleteTaskById(id);
                     sendDeleteResponse(exchange, "Task");
                     break;
                 default:
+                    //405
                     System.out.println("Method not allowed here: " + method);
                     sendMethodErrorResponse(exchange, method);
             }
@@ -65,8 +65,8 @@ public class TaskHandler extends BaseHandler {
         }
     }
 
-    private void handleTasksWithoutId(HttpExchange exchange)
-            throws IOException, InvalidParameterException, ValidationException {
+    private void handleTaskPathWithoutId(HttpExchange exchange)
+            throws IOException, InvalidParameterException, OverlapValidationException {
         String method = exchange.getRequestMethod();
         switch (method) {
             case "GET":
@@ -74,38 +74,36 @@ public class TaskHandler extends BaseHandler {
                 sendResponse(exchange, responseTasks, 200);
             case "POST":
                 String requestBody = readText(exchange);
-                JsonObject taskJson = gson.fromJson(requestBody, JsonObject.class);
-
-                try {
-                    validateTaskJson(taskJson); //400 Json Syntax Exception
-                } catch (JsonSyntaxException e) {
-                    sendJsonErrorResponse(exchange);
-                }
-
-                if (taskJson.has("id")) { // Task UPDATE
-                    Task taskUpdated = gson.fromJson(taskJson, Task.class);
+                Task task = gson.fromJson(requestBody, Task.class);
+                System.out.println("(POST) task deserialized: " + task);
+                if (task.getId() != null && taskAlreadyExistInManager(task)) { // Task UPDATE
                     try {
-                        manager.updateTask(taskUpdated); //400 Invalid Parameter
+                        //406 overlap
+                        manager.updateTask(task);
                         sendResponse(exchange, "Task updated successfully", 201);
-                    } catch (InvalidParameterException e) {
-                        sendParameterErrorResponse(exchange, String.valueOf(taskJson.get("id")));
-                    }
-                    break;
-                } else { // Task CREATE
-                    Task newTask = gson.fromJson(taskJson, Task.class);
-                    try {
-                        manager.createTask(newTask); // 406 overlap
-                        System.out.println("Task created");
-                        sendCreateResponse(exchange, "Task");
-                    } catch (ValidationException e) {
-                        sendOverlapErrorResponse(exchange);
+                    } catch (OverlapValidationException e) {
+                        sendOverlapErrorResponse(exchange, "Overlap while updating task");
                     }
                     break;
                 }
-
+                if (task.getId() == null && !taskAlreadyExistInManager(task)) { // Task CREATE
+                    try {
+                        // 406 overlap
+                        manager.createTask(task);
+                        sendCreateResponse(exchange, "Task created successfully");
+                    } catch (OverlapValidationException e) {
+                        sendOverlapErrorResponse(exchange, "Overlap while creating task");
+                    }
+                    break;
+                }
+                sendJsonErrorResponse(exchange);
+                break;
             default:
-                System.out.println("Method not supported: " + method);
+                System.out.println("Method not allowed: " + method); //405
                 sendMethodErrorResponse(exchange,  method);
         }
+    }
+    private boolean taskAlreadyExistInManager(Task task) {
+        return manager.getTasksAsList().contains(task);
     }
 }

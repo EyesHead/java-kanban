@@ -2,24 +2,26 @@ package server.handlers;
 
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
+import taskManager.interfaces.TaskManager;
 import taskManager.interfaces.HistoryManager;
+import tasksModels.Task;
 
 import java.io.IOException;
+import java.util.List;
 
-public class HistoryHandler {
-    HistoryManager historyManager;
-    Gson gson;
-    public HistoryHandler(HistoryManager historyManager, Gson gson) {
-        this.historyManager = historyManager;
-        this.gson = gson;
+public class HistoryHandler extends BaseHandler {
+    HistoryManager historyManager = manager.getHistoryManager();
+    public HistoryHandler(TaskManager manager, Gson gson) {
+        super(manager, gson);
     }
 
     public void handleHistory(HttpExchange exchange) throws IOException {
         try (exchange) {
             String method = exchange.getRequestMethod();
             if (method.equals("GET")) {
-                String response = historyManager.getAll().toString();
-                exchange.sendResponseHeaders(200, response.length());
+                List<Task> taskHistory = historyManager.getAll();
+                String responseEpics = gson.toJson(taskHistory);
+                sendResponse(exchange, responseEpics, 200);
             } else {
                 System.out.println("Invalid method: " + method);
                 exchange.sendResponseHeaders(404, 0);

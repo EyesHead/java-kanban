@@ -7,6 +7,7 @@ import tasksModels.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -76,6 +77,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         for (Subtask subtask : subtasks.values()) {
             Epic epic = getEpicBySubtask(subtask);
             epic.addTask(subtask);
+            epic.updateStatus();
             epics.put(epic.getId(), epic);
         }
     }

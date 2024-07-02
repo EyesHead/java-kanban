@@ -1,5 +1,6 @@
 package tasksModels;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,10 +8,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class Epic extends Task {
-    private List<Subtask> subtasks = new ArrayList<>();
+    private List<Subtask> epicSubtasks = new ArrayList<>();
     //Конструктор создания нового эпика
     public Epic(String name, String description, Status status) {
-        super(name, description, status, LocalDateTime.now(), 120);
+        super(name, description, status, LocalDateTime.now(), 0);
         this.type = TaskType.EPIC;
         this.startTime = LocalDateTime.now();
     }
@@ -23,34 +24,45 @@ public class Epic extends Task {
         this.type = TaskType.EPIC;
     }
 
+    public void updateStatus() {
+        boolean allDone = epicSubtasks.stream().allMatch(subtask -> subtask.getStatus() == Status.DONE);
+        boolean allNew = epicSubtasks.stream().allMatch(subtask -> subtask.getStatus() == Status.NEW);
+
+        if (allNew || epicSubtasks.isEmpty()) {
+            this.status = Status.NEW;
+        } else if (allDone) {
+            this.status = Status.DONE;
+        } else {
+            this.status = Status.IN_PROGRESS;
+        }
+    }
+
     public void addTask(Subtask subtask) {
-        subtasks.add(subtask);
-        duration = duration + subtask.duration;
+        epicSubtasks.add(subtask);
+        duration.plus(subtask.getDuration());
         updateTime();
-        updateStatus();
     }
 
     public void removeTask(Subtask subtask) {
-        subtasks.remove(subtask);
-        if (subtasks.isEmpty()) {
-            duration = 0;
+        epicSubtasks.remove(subtask);
+        if (epicSubtasks.isEmpty()) {
+            duration = Duration.ofMinutes(0);
         }
-        duration = duration - subtask.duration;
+        duration.minus(subtask.getDuration());
         updateTime();
-        updateStatus();
     }
 
-    public void setSubtasks(List<Subtask> subtasks) {
-        this.subtasks = subtasks;
+    public void setEpicSubtasks(List<Subtask> epicSubtasks) {
+        this.epicSubtasks = epicSubtasks;
     }
 
-    public List<Subtask> getSubtasks() {
-        return subtasks;
+    public List<Subtask> getEpicSubtasks() {
+        return epicSubtasks;
     }
 
     @Override
     public LocalDateTime getStartTime() {
-        Optional<LocalDateTime> startTime = subtasks.stream()
+        Optional<LocalDateTime> startTime = epicSubtasks.stream()
                 .map(Task::getStartTime)
                 .min(LocalDateTime::compareTo);
         // время начала самой ранней подзадачи
@@ -60,28 +72,28 @@ public class Epic extends Task {
     @Override
     public LocalDateTime getEndTime() {
         // получаем самое крайнее время завершения из всех подзадач эпика
-        Optional<LocalDateTime> endTimeMaxSub = subtasks.stream()
+        Optional<LocalDateTime> endTimeMaxSub = epicSubtasks.stream()
                 .map(Subtask::getEndTime)
                 .max(LocalDateTime::compareTo);
 
         // получаем общую длительность всех подзадач эпика
-        int totalSubtaskDurationMinutes = subtasks.stream()
-                .mapToInt(Subtask::getDuration)
-                .sum();
+        int totalSubtaskDurationMinutes = (int) epicSubtasks.stream()
+                .map(Subtask::getDuration)
+                .reduce(Duration.ZERO, Duration::plus)
+                .toMinutes();
 
         Optional<LocalDateTime> endTimeSumSubDurations = Optional.of(startTime.plusMinutes(totalSubtaskDurationMinutes));
 
         return endTimeMaxSub.map(localDateTime ->
                 localDateTime.isAfter(endTimeSumSubDurations.get())
-                ? localDateTime : endTimeSumSubDurations
-                .get()).orElse(LocalDateTime.MAX);
+                ? localDateTime : endTimeSumSubDurations.get())
+                .orElse(null);
     }
 
-
     @Override
-    public int getDuration() {
-        if (subtasks.isEmpty()) {
-            return 0;
+    public Duration getDuration() {
+        if (epicSubtasks.isEmpty()) {
+            return Duration.ofMinutes(0);
         }
         return duration;
     }
@@ -97,29 +109,16 @@ public class Epic extends Task {
         if (object == null || getClass() != object.getClass()) return false;
         if (!super.equals(object)) return false;
         Epic epic = (Epic) object;
-        return Objects.equals(subtasks, epic.subtasks) &&
+        return Objects.equals(epicSubtasks, epic.epicSubtasks) &&
                 Objects.equals(getId(), epic.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subtasks);
+        return Objects.hash(super.hashCode(), epicSubtasks);
     }
 
     private void updateTime() {
         this.startTime = getStartTime();
-    }
-
-    private void updateStatus() {
-        boolean allCompleted = subtasks.stream().allMatch(subtask -> subtask.getStatus() == Status.DONE);
-        boolean allNew = subtasks.stream().allMatch(subtask -> subtask.getStatus() == Status.NEW);
-
-        if (allCompleted) {
-            this.status = Status.DONE;
-        } else if (allNew) {
-            this.status = Status.NEW;
-        } else {
-            this.status = Status.IN_PROGRESS;
-        }
     }
 }
