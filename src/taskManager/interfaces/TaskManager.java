@@ -28,8 +28,8 @@ public interface TaskManager {
     void deleteAll();
 
     //методы обновления
-    void updateTask(Task task);
-    void updateSubtask(Subtask subtask);
+    void updateTask(Task task) throws OverlapValidationException;
+    void updateSubtask(Subtask subtask) throws OverlapValidationException;
 
     Set<Task> getPrioritizedTasks();
 

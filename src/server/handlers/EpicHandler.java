@@ -15,7 +15,8 @@ public class EpicHandler extends BaseHandler {
         super(manager, gson);
     }
 
-    public void handleEpic(HttpExchange exchange) throws IOException {
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
         try (exchange) {
             String path = exchange.getRequestURI().getPath();
             if (path.equals("/epics")) {

@@ -16,7 +16,8 @@ public class SubtaskHandler extends BaseHandler {
         super(manager, gson);
     }
 
-    public void handleSubtask(HttpExchange exchange) throws IOException {
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
         try (exchange) {
             String path = exchange.getRequestURI().getPath();
             if (Pattern.matches("^/subtasks/\\d+$", path)) {

@@ -1,17 +1,21 @@
 package server.handlers;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import taskManager.interfaces.TaskManager;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class PriorityHandler {
+public class PriorityHandler extends BaseHandler {
     TaskManager taskManager;
-    public PriorityHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+    public PriorityHandler(TaskManager manager, Gson gson) {
+        super(manager, gson);
     }
-    public void handlePriority(HttpExchange exchange) throws IOException {
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
         try (exchange) {
             String method = exchange.getRequestMethod();
             if (method.equals("GET")) {

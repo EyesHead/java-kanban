@@ -19,7 +19,8 @@ public class TaskHandler extends BaseHandler {
         super(manager, gson);
     }
 
-    public void handleTask(HttpExchange exchange) throws IOException {
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
         try (exchange) {
             String path = exchange.getRequestURI().getPath();
             if (Pattern.matches("^/tasks/\\d+$", path)) {

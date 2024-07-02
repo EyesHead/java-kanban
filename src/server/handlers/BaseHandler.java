@@ -4,18 +4,23 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import taskManager.interfaces.TaskManager;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class BaseHandler {
+public abstract class BaseHandler implements HttpHandler {
     TaskManager manager;
     Gson gson;
+
     public BaseHandler(TaskManager manager, Gson gson) {
         this.manager = manager;
         this.gson = gson;
     }
+
+    @Override
+    public abstract void handle(HttpExchange exchange) throws IOException;
 
     protected String readText(HttpExchange httpExchange) throws IOException {
         return new String(httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
@@ -77,4 +82,5 @@ public class BaseHandler {
                 taskJson.has("startTime")))
             throw new JsonSyntaxException("Invalid task json");
     }
+
 }

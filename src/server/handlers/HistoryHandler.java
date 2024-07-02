@@ -15,7 +15,8 @@ public class HistoryHandler extends BaseHandler {
         super(manager, gson);
     }
 
-    public void handleHistory(HttpExchange exchange) throws IOException {
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
         try (exchange) {
             String method = exchange.getRequestMethod();
             if (method.equals("GET")) {
@@ -24,7 +25,7 @@ public class HistoryHandler extends BaseHandler {
                 sendResponse(exchange, responseEpics, 200);
             } else {
                 System.out.println("Invalid method: " + method);
-                exchange.sendResponseHeaders(404, 0);
+                exchange.sendResponseHeaders(405, 0);
             }
         } catch (Exception e) {
             exchange.sendResponseHeaders(500, 0);

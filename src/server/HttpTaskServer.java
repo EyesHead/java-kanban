@@ -36,7 +36,7 @@ public class HttpTaskServer {
         this.subtaskHandler = new SubtaskHandler(manager, gson);
         this.epicHandler = new EpicHandler(manager, gson);
         this.historyHandler = new HistoryHandler(manager, gson);
-        this.priorityHandler = new PriorityHandler(manager);
+        this.priorityHandler = new PriorityHandler(manager, gson);
         try {
             server = HttpServer.create(new InetSocketAddress("localhost", PORT), 0);
         } catch (IOException e) {
@@ -51,23 +51,23 @@ public class HttpTaskServer {
     }
 
     private void handleTask(HttpExchange exchange) throws IOException {
-        taskHandler.handleTask(exchange);
+        taskHandler.handle(exchange);
     }
 
     private void handleSubtask(HttpExchange exchange) throws IOException {
-        subtaskHandler.handleSubtask(exchange);
+        subtaskHandler.handle(exchange);
     }
 
     private void handleEpic(HttpExchange exchange) throws IOException {
-        epicHandler.handleEpic(exchange);
+        epicHandler.handle(exchange);
     }
 
     private void handleHistory(HttpExchange exchange) throws IOException {
-        historyHandler.handleHistory(exchange);
+        historyHandler.handle(exchange);
     }
 
     private void handlePriority(HttpExchange exchange) throws IOException {
-        priorityHandler.handlePriority(exchange);
+        priorityHandler.handle(exchange);
     }
 
     public void start() {
