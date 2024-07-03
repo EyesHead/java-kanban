@@ -1,9 +1,9 @@
 package managersTest;
 
-import managers.memory_classes.InMemoryHistoryManager;
-import managers.memory_classes.InMemoryTaskManager;
-import managers.Managers;
-import models.Task;
+import taskManager.memory.InMemoryHistoryManager;
+import taskManager.memory.InMemoryTaskManager;
+import managersCreator.Managers;
+import tasksModels.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static models.Status.NEW;
+import static tasksModels.Status.NEW;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InMemoryHistoryManagerTest {
@@ -29,9 +29,9 @@ public class InMemoryHistoryManagerTest {
 
     @BeforeEach
     public void beforeEach() {
-        taskManager.addTask(task1);
-        taskManager.addTask(task2);
-        taskManager.addTask(task3);
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
+        taskManager.createTask(task3);
 
         taskManager.getTaskById(0);
         taskManager.getTaskById(1);
@@ -46,7 +46,7 @@ public class InMemoryHistoryManagerTest {
         //Сейчас в истории 3 задачи
         assertEquals(taskManager.getHistoryManager().getAll().size(), 3, "В истории должно быть 3 задачи");
         //Удалим их
-        taskManager.clearAll();
+        taskManager.deleteAll();
         InMemoryHistoryManager historyManager = taskManager.getHistoryManager();
         assertEquals(historyManager.getAll().size(), 0, "Задачи не удалились из истории");
     }
