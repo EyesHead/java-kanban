@@ -1,55 +1,29 @@
 package managersTest;
 
-import taskManager.exceptions.NotFoundException;
-import taskManager.interfaces.HistoryManager;
-import taskManager.interfaces.TaskManager;
-import tasksModels.*;
+import factories.TaskFactory;
+import model.Epic;
+import model.Subtask;
+import model.Task;
+import service.HistoryManager;
+import service.TaskManager;
 import org.junit.jupiter.api.*;
-import testUtil.LDTRandomizer;
+import service.exceptions.TaskNotFoundException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static tasksModels.Status.*;
+import static model.Status.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class TaskManagerTest<T extends TaskManager> {
     public T manager;
-
-    public Task task1;
-    public Task task2;
-    public Epic epic;
-
-    public Subtask subtaskA;
-    public Subtask subtaskB;
-    public Subtask subtaskC;
 
     protected abstract T createManager() throws IOException;
 
     @BeforeEach
     void beforeEach() throws IOException {
         manager = createManager();
-    }
-
-    void initTasks() {
-        task1 = new Task("Создание Мобильного Приложения", "Разработка интерфейса", NEW,
-                LDTRandomizer.getRandomLDT(), 50);
-        task2 = new Task("Новая задача", "Описание новой задачи", NEW,
-                LDTRandomizer.getRandomLDT(), 40);
-    }
-
-    void initEpic() {
-        epic = new Epic("Разработка интерфейса", "Разделяется на 3 подзадачи", NEW);
-    }
-
-    void initSubtasks() {
-        subtaskA = new Subtask("Подзадача 1", "Дизайн пользовательского интерфейса", NEW,
-                epic.getId(), LocalDateTime.of(2020, 1, 1, 0, 0), 60);
-        subtaskB = new Subtask("Подзадача 2", "Разработка пользовательских сценариев", NEW,
-                epic.getId(), LocalDateTime.of(2021, 1, 2, 0, 0), 60);
-        subtaskC = new Subtask("Подзадача 2", "Разработка пользовательских сценариев", NEW,
-                epic.getId(), LocalDateTime.of(2022, 1, 3, 0, 0), 60);
     }
 
     @DisplayName("Проверка статуса у эпика. Все подзадачи со статусом NEW")
@@ -69,53 +43,39 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @DisplayName("Создать задачу + задать ей уникальный идентификатор")
     @Test
     void shouldCreateTaskWithUniqueId() {
-        initTasks();
-        manager.createTask(task1);
-        Task taskUnique =
-                new Task( "Очередная задача", "???", NEW, LocalDateTime.now(), 10);
-        Task taskCopied = task1;
+        Task taskUnique = TaskFactory.generateTask("Task unique", "Some description");
 
-        manager.createTask(taskUnique);
-        assertSame(task1, taskCopied);
+        taskUnique = manager.createTask(taskUnique);
+        Task recievedTask = manager.getTaskById(taskUnique.getId());
+        assertSame(taskUnique, recievedTask);
 
-        manager.createTask(taskUnique);
-        manager.getTaskById(taskUnique.getId());
-
-        assertTrue(manager.getAll().contains(taskUnique), "Задача не была добавлена в менеджер");
+        assertTrue(manager.getTasksAsList().contains(taskUnique), "Задача не была добавлена в менеджер");
     }
 
     @DisplayName("Создать эпик + задать ему уникальный идентификатор")
     @Test
     void shouldCreateEpicWithUniqueId() {
-        initEpic();
-        manager.createEpic(epic);
-        Epic uniqueEpic =
-                new Epic("123213", "???", NEW);
-        Epic epicCopied = epic;
 
-        manager.createTask(uniqueEpic);
-        assertSame(epic, epicCopied);
+        Epic epicUnique = TaskFactory.generateEpic("Epic unique", "Epic description");
 
-        manager.createTask(uniqueEpic);
-        manager.getTaskById(uniqueEpic.getId());
+        epicUnique = manager.createEpic(epicUnique);
+        Epic recievedEpic = manager.getEpicById(epicUnique.getId());
+        assertSame(epicUnique, recievedEpic);
 
-        assertTrue(manager.getAll().contains(uniqueEpic), "Эпик не был добавлен в менеджер");
+        assertTrue(manager.getEpicsAsList().contains(epicUnique), "Задача не была добавлена в менеджер");
     }
 
     @DisplayName("Создать подзадачу + задать ей уникальный идентификатор")
     @Test
     void shouldCreateSubtaskWithUniqueId() {
-        initEpic();
-        manager.createEpic(epic);
-        initSubtasks();
-        manager.createSubtask(subtaskA);
-        Subtask uniqueSubtask =
-                new Subtask("Очередная задача", "???", NEW, epic.getId(),LocalDateTime.now(), 10);
-        Subtask subtaskCopied = subtaskA;
+        var epic = TaskFactory.generateEpic("Epic for sub","interesting description");
+        epic = manager.createEpic(epic);
+        var subtask = TaskFactory.generateSubtask("Subtask1","Some description",epic.getId());
+        manager.createSubtask(subtask);
 
-        manager.createSubtask(uniqueSubtask);
-        assertSame(subtaskCopied, subtaskA);
-
+        var uniqueSubtask = TaskFactory.generateSubtask("Очередная задача", "???", epic.getId());
+        uniqueSubtask.setStartTime(LocalDateTime.now().plusDays(30));
+        uniqueSubtask = manager.createSubtask(uniqueSubtask);
         manager.createSubtask(uniqueSubtask);
         manager.getSubtaskById(uniqueSubtask.getId());
 
@@ -125,113 +85,120 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     @DisplayName("Обновить статус и время у существующей задачи и проверить, что она изменилась в менеджере")
     @Test
     void updateTask() {
-        initTasks();
-        manager.createTask(task1);
-        Task task1InProgress = task1;
-        task1InProgress.setStatus(IN_PROGRESS);
+        Task task = TaskFactory.generateTask("Task","Task description", NEW);
+        task = manager.createTask(task);
+        Task taskInProgress = task;
+        taskInProgress.setStatus(IN_PROGRESS);
 
-        manager.updateTask(task1InProgress);
+        manager.updateTask(taskInProgress);
+        assertEquals(1, manager.getTasksAsList().size(),
+                "Размер менеджера после обновления изменился!");
+        assertNotSame(manager.getTasksAsList().getFirst().getStatus(), NEW, "Статус не поменялся");
     }
 
     @DisplayName("Обновить статус и время у существующей задачи и проверить, что она изменилась в менеджере")
     @Test
     void updateSubtask() {
-        initTasks();
-        manager.createTask(task1);
-        Task task1Done = task1;
+        var epic = manager.createEpic(TaskFactory.generateEpic("epic","some epic things"));
+        var subtask = manager.createSubtask(TaskFactory
+                .generateSubtask("SubTask","SubTask description", epic.getId()));
+        subtask.setStatus(DONE);
 
-        task1Done.setStatus(DONE);
-
-        manager.updateTask(task1Done);
-        assertEquals(DONE, manager.getTaskById(task1Done.getId()).getStatus(), "Статус должен быть DONE!");
+        manager.updateSubtask(subtask);
+        assertEquals(DONE, manager.getSubtaskById(subtask.getId()).getStatus(),
+                "Статус должен измениться на DONE!");
     }
 
     @Test
     void deleteAllEpicsAndCheckHistory() {
-        initEpic();
-        manager.createEpic(epic);
+        Epic epic = TaskFactory.generateEpic("SubTask","SubTask description");
+        epic = manager.createEpic(epic);
 
-        initSubtasks();
-        manager.createSubtask(subtaskA);
-        manager.createSubtask(subtaskB);
-
+        Subtask subtask1 = TaskFactory.generateSubtask("SubTask1","SubTask description1", epic.getId());
+        Subtask subtask2 = TaskFactory.generateSubtask("SubTask2","SubTask description2", epic.getId());
+        subtask2.setStartTime(subtask1.getStartTime().plusDays(30));
+        subtask1 = manager.createSubtask(subtask1);
+        subtask2 = manager.createSubtask(subtask2);
         // Заполняем историю просмотров + получаем менеджер истории просмотров
         manager.getEpicById(epic.getId());
-        manager.getSubtaskById(subtaskA.getId());
-        manager.getSubtaskById(subtaskB.getId());
-        assertEquals(List.of(epic, subtaskA, subtaskB), manager.getHistoryManager().getAll(),
-                "Задачи не были добавлены в историю просмотров");
+        manager.getSubtaskById(subtask1.getId());
+        manager.getSubtaskById(subtask2.getId());
 
         assertNotNull(manager.getEpicsAsList(), "Задач нет в списке!");
         assertNotNull(manager.getSubtasksAsList(), "Подзадач нет в списке!");
+
+        assertEquals(List.of(epic, subtask1, subtask2), manager.getHistoryManager().getAll(),
+                "Задачи не были добавлены в историю просмотров");
 
         manager.deleteAllEpics();
         assertEquals(0, manager.getEpicsAsList().size(),
                 "Эпики не удалились из списка!");
         assertEquals(0, manager.getSubtasksAsList().size(),
                 "Подзадачи не удалились из списка вместе с эпиками!");
-
         assertEquals(0, manager.getHistoryManager().getAll().size(),
                 "Эпики с подзадачами не удалились из истории просмотров");
     }
 
     @Test
     void deleteAllSubtasksAndCheckHistory() {
-        initEpic();
-        manager.createEpic(epic);
+        Epic epic = TaskFactory.generateEpic("SubTask","SubTask description");
+        epic = manager.createEpic(epic);
 
-        initSubtasks();
-        manager.createSubtask(subtaskA);
-        manager.createSubtask(subtaskB);
+        Subtask subtask1 = TaskFactory.generateSubtask("SubTask1","SubTask description1", epic.getId());
+        Subtask subtask2 = TaskFactory.generateSubtask("SubTask2","SubTask description2", epic.getId());
+        subtask2.setStartTime(subtask1.getStartTime().plusDays(30));
+        subtask1 = manager.createSubtask(subtask1);
+        subtask2 = manager.createSubtask(subtask2);
 
         // Заполняем историю просмотров + получаем менеджер истории просмотров
         manager.getEpicById(epic.getId());
-        manager.getSubtaskById(subtaskA.getId());
-        manager.getSubtaskById(subtaskB.getId());
-        assertEquals(List.of(epic, subtaskA, subtaskB), manager.getHistoryManager().getAll(),
+        manager.getSubtaskById(subtask1.getId());
+        manager.getSubtaskById(subtask2.getId());
+        assertEquals(List.of(epic, subtask1, subtask2), manager.getHistoryManager().getAll(),
                 "Эпики с подзадачами не были добавлены в историю просмотров");
 
         manager.deleteAllSubtasks();
-        assertEquals(0, manager.getSubtasksAsList().size(), "Подзадачи не удалились из map подзадач!");
-        assertEquals(1, manager.getEpicsAsList().size(), "Эпики не должны удаляться, " +
-                "поскольку удаляются только подзадачи");
+        assertEquals(0, manager.getSubtasksAsList().size(),
+                "Подзадачи не удалились из map подзадач!");
+        assertEquals(1, manager.getEpicsAsList().size(),
+                "Эпик не должен удаляться, поскольку удаляются только подзадачи");
 
-        assertEquals(List.of(epic), manager.getHistoryManager().getAll(), "Подзадачи не удалились из истории просмотров");
+        assertEquals(List.of(epic), manager.getHistoryManager().getAll(),
+                "Подзадачи не удалились из истории просмотров");
     }
 
     @Test
     void deleteTaskByIdAndCheckHistory() {
-        initTasks();
-        manager.createTask(task1);// id = 0
-        manager.createTask(task2);// id = 1
-        manager.getTaskById(task1.getId());
-        manager.getTaskById(task2.getId());
+        Task task1 = TaskFactory.generateTask("Task1", "descr task1");
+        Task task2 = TaskFactory.generateTask("Task2", "descr task2");
+
+        Task task1Created = manager.createTask(task1);
+        Task task2Created = manager.createTask(task2);
+        manager.getTaskById(task1Created.getId());
+        manager.getTaskById(task2Created.getId());
 
         HistoryManager historyManager = manager.getHistoryManager();
-        assertEquals(List.of(task1, task2), historyManager.getAll(),
+        assertEquals(List.of(task1Created, task2Created), historyManager.getAll(),
                 "Задачи не были добавлены в историю просмотров");
 
-        manager.deleteTaskById(task1.getId());
-        assertThrows(NotFoundException.class,
-                () -> manager.getTaskById(task1.getId()),
+        manager.deleteTaskById(task1Created.getId());
+        assertThrows(TaskNotFoundException.class, () -> manager.getTaskById(task1Created.getId()),
                 "Задача всё ещё в списке!");
 
         historyManager = manager.getHistoryManager();
-        assertEquals(List.of(task2), historyManager.getAll(),
-                "Задачи не были удалены из истории просмотров");
+        assertEquals(List.of(task2Created), historyManager.getAll(),
+                "Задача1 не были удалены из истории просмотров");
     }
 
     @Test
     void deleteEpicByIdAndCheckHistory() {
-        // Эпик должен удалиться из map`ы эпиков
-        // Должны удалиться все подзадачи из map`ы подзадач
-        // Эпик должен удалиться из истории просмотров
-        initEpic();
-        manager.createEpic(epic);// id = 0
-
-        initSubtasks();
-        manager.createSubtask(subtaskA);// id = 1
-        manager.createSubtask(subtaskB);// id = 2
+        Epic epic = TaskFactory.generateEpic("epic","epic with subs");
+        epic = manager.createEpic(epic);
+        Subtask subtaskA  = TaskFactory.generateSubtask("subtaskA","subA description", epic.getId());
+        Subtask subtaskB  = TaskFactory.generateSubtask("subtaskB","subB description", epic.getId());
+        subtaskB.setStartTime(subtaskA.getStartTime().plusDays(30));
+        subtaskA = manager.createSubtask(subtaskA);
+        subtaskB = manager.createSubtask(subtaskB);
 
         // Заполняем историю просмотров
         manager.getEpicById(epic.getId());
@@ -246,24 +213,19 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
 
         manager.deleteEpicById(epic.getId());
-        assertThrows(NotFoundException.class, () -> manager.getTaskById(subtaskA.getId()),
-                "Подзадача A не была удалена из менеджера");
-        assertThrows(NotFoundException.class, () -> manager.getTaskById(subtaskB.getId()),
-                "Подзадача B не была удалена из менеджера");
+        assertEquals(0, manager.getSubtasksAsList().size(), "Подзадачи не были удалены из менеджера");
         assertEquals(manager.getHistoryManager().getAll().size(), 0, "История должна быть пустая!");
     }
 
     @Test
     void deleteSubtaskByIdAndCheckHistory() {
-        // Эпик должен удалиться из map`ы эпиков
-        // Должны удалиться все подзадачи из map`ы подзадач
-        // Эпик должен удалиться из истории просмотров
-        initEpic();
-        manager.createEpic(epic);// id = 0
+        Epic epic = TaskFactory.generateEpic("epic","epic with subs");
+        epic = manager.createEpic(epic);
 
-        initSubtasks();
-        manager.createSubtask(subtaskA);// id = 1
-        manager.createSubtask(subtaskB);// id = 2
+        Subtask subtaskA  = TaskFactory.generateSubtask("subtaskA","subA description", epic.getId());
+        Subtask subtaskB  = TaskFactory.generateSubtask("subtaskB","subB description", epic.getId());
+        subtaskA = manager.createSubtask(subtaskA);
+        subtaskB = manager.createSubtask(subtaskB);
 
         // Заполняем историю просмотров
         manager.getEpicById(epic.getId());
@@ -278,23 +240,28 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
 
         manager.deleteEpicById(epic.getId());
-        assertThrows(NotFoundException.class, () -> manager.getTaskById(subtaskA.getId()),
+        Subtask finalSubtaskA = subtaskA;
+        assertThrows(TaskNotFoundException.class, () -> manager.getTaskById(finalSubtaskA.getId()),
                 "Подзадача A не была удалена из менеджера");
-        assertThrows(NotFoundException.class, () -> manager.getTaskById(subtaskB.getId()),
+        Subtask finalSubtaskB = subtaskB;
+        assertThrows(TaskNotFoundException.class, () -> manager.getTaskById(finalSubtaskB.getId()),
                 "Подзадача B не была удалена из менеджера");
         assertEquals(manager.getHistoryManager().getAll().size(), 0, "История должна быть пустая!");
     }
 
-    @DisplayName("Удалять NEW подзадачу из эпика и проверить статус эпика")
+    @DisplayName("Удалять NEW подзадачу из эпика и проверить статус эпика (статус эпика должен стать DONE)")
     @Test
     void deleteSubtaskNewWhileOtherAreDone() {
-        initEpic();
-        manager.createEpic(epic);
+        Epic epic = TaskFactory.generateEpic("epic","epic with subs");
+        epic = manager.createEpic(epic);
 
-        initSubtasks();
-        manager.createSubtask(subtaskA);
-        manager.createSubtask(subtaskB);
-        manager.createSubtask(subtaskC);
+        Subtask subtaskA  = TaskFactory.generateSubtask("subtaskA","subA description", epic.getId());
+        Subtask subtaskB  = TaskFactory.generateSubtask("subtaskB","subB description", epic.getId());
+        Subtask subtaskC  = TaskFactory.generateSubtask("subtaskC","subC description", epic.getId());
+
+        subtaskA = manager.createSubtask(subtaskA);
+        subtaskB = manager.createSubtask(subtaskB);
+        subtaskC = manager.createSubtask(subtaskC);
 
         subtaskA.setStatus(DONE);
         subtaskB.setStatus(DONE);
@@ -327,6 +294,6 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertEquals(DONE, manager.getSubtaskById(subtaskB.getId()).getStatus(),
                 "Статус подзадачи B должен измениться на DONE");
         assertEquals(DONE, manager.getEpicsAsList().getFirst().getStatus(),
-                "Статус эпика должен быть IN_PROGRESS");
+                "Статус эпика должен быть DONE");
     }
 }
