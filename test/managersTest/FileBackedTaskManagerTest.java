@@ -1,9 +1,10 @@
 package managersTest;
 
-import taskManager.memory.FileBackedTaskManager;
-import tasksModels.Epic;
-import tasksModels.Subtask;
-import tasksModels.Task;
+import factories.TaskFactory;
+import service.file.FileBackedTaskManager;
+import model.Epic;
+import model.Subtask;
+import model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,9 +13,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import static tasksModels.Status.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static model.Status.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /*
 Остальные проверки на работоспособность методов менеджера находятся в InMemoryTaskManagerTest, здесь же будут
@@ -45,21 +45,19 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     @Test
     void testEpicNew() {
         // эпик в менеджере уже new, добавим парочку для тестов
-        initEpic();
-        manager.createEpic(epic);
-        initSubtasks();
-        manager.createSubtask(subtaskA);
-        manager.createSubtask(subtaskB);
-        manager.createSubtask(subtaskC);
-        Epic newEpic1 = new Epic("Новый эпик", "Какое-то описание (фантазия на уровне)", NEW);
-        Epic newEpic2 = new Epic("Ещё эпик", "Супер-оригинальное описание", NEW);
-        manager.createEpic(newEpic1);
-        manager.createEpic(newEpic2);
-        assertEquals(manager.getEpicsAsList().size(), 3, "Эпик не был добавлен в менеджер");
+        Epic epicToCreate = TaskFactory.generateEpic("Epic","Epic Description");
+        Epic epic = manager.createEpic(epicToCreate);
+        Subtask subtaskAToCreate = TaskFactory.generateSubtask("subtaskA","subA description", epic.getId());
+        Subtask subtaskBToCreate = TaskFactory.generateSubtask("subtaskB","subB description", epic.getId());
+        subtaskBToCreate.setStartTime(subtaskAToCreate.getStartTime().plusDays(30));
+        manager.createSubtask(subtaskAToCreate);
+        manager.createSubtask(subtaskBToCreate);
 
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(manager.getPath());
-        loadedManager.getEpicsAsList().forEach(epic -> assertEquals(epic.getStatus(), NEW,
-                "Статусы всех эпиков загружаемого файла должны быть NEW"));
+        assertEquals(manager.getEpicsAsList().size(), 1, "Эпик не был добавлен в менеджер");
+
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadManagerFromFile(manager.getPath());
+        assertSame(loadedManager.getEpicsAsList().getFirst().getStatus(), NEW,
+                "Статус epic у двух менеджеров не совпадает");
 
         assertTrue(areAllTasksAreSame(manager, loadedManager),
                 "Состояние задач из двух менеджеров не совпадает");
@@ -70,29 +68,28 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     @Override
     @Test
     void testEpicInProgress() {
-        initEpic();
-        manager.createEpic(epic);
-        initSubtasks();
-        manager.createSubtask(subtaskA);
-        manager.createSubtask(subtaskB);
+        Epic epic = manager.createEpic(TaskFactory.generateEpic("Epic","Epic Description"));
+        Subtask subtaskAToCreate = TaskFactory.generateSubtask("subtaskA","subA description", epic.getId());
+        Subtask subtaskBToCreate = TaskFactory.generateSubtask("subtaskB","subB description", epic.getId());
+        subtaskBToCreate.setStartTime(subtaskAToCreate.getStartTime().plusDays(30));
+        Subtask subtaskA = manager.createSubtask(subtaskAToCreate);
+        Subtask subtaskB = manager.createSubtask(subtaskBToCreate);
 
         subtaskA.setStatus(IN_PROGRESS);
         subtaskB.setStatus(DONE);
-        Subtask aSubtaskUpdated = subtaskA;
-        Subtask bSubtaskUpdated = subtaskB;
 
-        manager.updateSubtask(aSubtaskUpdated);
-        manager.updateSubtask(bSubtaskUpdated);
+        manager.updateSubtask(subtaskA);
+        manager.updateSubtask(subtaskB);
 
         assertEquals(IN_PROGRESS, manager.getEpicById(epic.getId()).getStatus(),
                 "Статус эпика после обновлений подзадач должен быть IN_PROGRESS");
 
-        bSubtaskUpdated.setStatus(IN_PROGRESS);
-        manager.updateSubtask(bSubtaskUpdated);
+        subtaskB.setStatus(IN_PROGRESS);
+        manager.updateSubtask(subtaskB);
         assertEquals(IN_PROGRESS, manager.getEpicById(epic.getId()).getStatus(),
                 "Статус эпика после обновлений подзадач должен быть IN_PROGRESS");
 
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(manager.getPath());
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadManagerFromFile(manager.getPath());
         assertEquals(IN_PROGRESS, loadedManager.getEpicsAsList().getFirst().getStatus(),
                 "Статус эпика загружаемого файла должны быть IN_PROGRESS");
         assertTrue(areAllTasksAreSame(manager, loadedManager),
@@ -104,7 +101,13 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     @Override
     @Test
     void testEpicDone() {
-        testEpicInProgress();
+        Epic epic = manager.createEpic(TaskFactory.generateEpic("Epic","Epic Description"));
+        Subtask subtaskAToCreate = TaskFactory.generateSubtask("subtaskA","subA description", epic.getId());
+        Subtask subtaskBToCreate = TaskFactory.generateSubtask("subtaskB","subB description", epic.getId());
+        subtaskBToCreate.setStartTime(subtaskAToCreate.getStartTime().plusDays(30));
+        Subtask subtaskA = manager.createSubtask(subtaskAToCreate);
+        Subtask subtaskB = manager.createSubtask(subtaskBToCreate);
+
         subtaskA.setStatus(DONE);
         manager.updateSubtask(subtaskA);
 
@@ -114,7 +117,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         assertEquals(DONE, manager.getEpicById(epic.getId()).getStatus(),
                 "Статус эпика после обновлений подзадач должен быть DONE");
 
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(manager.getPath());
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadManagerFromFile(manager.getPath());
         assertEquals(DONE, loadedManager.getEpicsAsList().getFirst().getStatus(),
                 "Статус эпика загружаемого файла должны быть DONE");
         assertTrue(areAllTasksAreSame(manager, loadedManager),
@@ -139,8 +142,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
                     !Objects.equals(task.getType(), loadedTask.getType()) ||
                     !Objects.equals(task.getName(), loadedTask.getName()) ||
                     !Objects.equals(task.getDescription(), loadedTask.getDescription()) ||
-                    !Objects.equals(task.getStatus(), loadedTask.getStatus()) ||
-                    !Objects.equals(task.getType(), loadedTask.getType()))
+                    !Objects.equals(task.getStatus(), loadedTask.getStatus()))
                 return false;
         }
 

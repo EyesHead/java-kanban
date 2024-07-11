@@ -1,7 +1,8 @@
-id,type,name,status,description,epic(optional),duration,startTime
-0,TASK,Имя Задачи1,NEW,Описание задачи1,null,0,2022-12-13T12:45
-1,TASK,Имя Задачи2,NEW,Описание задачи2,null,3,2023-02-27T02:15
-2,EPIC,Эпик с тремя подзадачами,IN_PROGRESS,Разделяется на 3 подзадачи,null,0,2021-02-27T01:50
-3,SUBTASK,Подзадача 1.1,NEW,Subtask1 for epic1,2,0,2021-02-27T01:50
-4,SUBTASK,Подзадача 1.2,IN_PROGRESS,Subtask2 for epic1,2,3,2023-03-27T02:15
-5,SUBTASK,Подзадача 1.3,DONE,Subtask3 for epic1,2,0,2025-04-26T23:35
+type,id,name,status,description,startTime,duration,epicId(for subtasks)
+TASK,0,Имя Задачи1,Описание задачи1,NEW,2022-05-02T01:00,120
+TASK,1,Имя Задачи2,Описание задачи2,NEW,2025-10-22T00:32,60
+EPIC,2,Эпик с тремя подзадачами,Разделяется на 3 подзадачи,NEW,2020-01-04T09:42,170
+EPIC,6,Эпик без подзадач,Тут нет подзадач,NEW,null,0
+SUBTASK,3,Подзадача 1.1,Subtask1 for epic1,NEW,2020-10-09T05:57,50,2
+SUBTASK,4,Подзадача 1.2,Subtask2 for epic1,NEW,2020-01-04T09:42,20,2
+SUBTASK,5,Подзадача 1.3,Subtask3 for epic1,NEW,2021-04-20T10:03,100,2

@@ -1,44 +1,38 @@
 package managersTest;
 
-import taskManager.memory.InMemoryHistoryManager;
-import taskManager.memory.InMemoryTaskManager;
-import managersCreator.Managers;
-import tasksModels.Task;
+import factories.TaskFactory;
+import service.history.InMemoryHistoryManager;
+import service.memory.InMemoryTaskManager;
+import service.ManagersCreator;
+import model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-import static tasksModels.Status.NEW;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InMemoryHistoryManagerTest {
-    static InMemoryTaskManager taskManager = Managers.getDefaultTaskManager();
+    static InMemoryTaskManager taskManager = ManagersCreator.getDefaultTaskManager();
 
-    Task task1 =
-            new Task("Задача1", "Описание задачи 1", NEW,
-                    LocalDateTime.now(), 50);
-    Task task2 =
-            new Task("Задача2", "Описание задачи 2", NEW,
-                    LocalDateTime.now(), 50);
-    Task task3 =
-            new Task("Задача3", "Описание задачи 3", NEW,
-                    LocalDateTime.now(), 50);
+    Task task1 = TaskFactory.generateTask("Task 1", "Task 1 description");
+
+    Task task2 = TaskFactory.generateTask("Task 2", "Task 2 description");
+    Task task3 = TaskFactory.generateTask("Task 3", "Task 3 description");
 
     @BeforeEach
     public void beforeEach() {
-        taskManager.createTask(task1);
-        taskManager.createTask(task2);
-        taskManager.createTask(task3);
+        task1 = taskManager.createTask(task1);
+        task2 = taskManager.createTask(task2);
+        task3 = taskManager.createTask(task3);
 
-        taskManager.getTaskById(0);
-        taskManager.getTaskById(1);
-        taskManager.getTaskById(2);
+        taskManager.getTaskById(task1.getId());
+        taskManager.getTaskById(task2.getId());
+        taskManager.getTaskById(task3.getId());
 
         //Сейчас история просмотров имеет вид:
-        // null <-> task1(node) <-> task2(node) <-> task3(node)
+        // null <-> task1(node) <-> task2(node) <-> task3(node) <-> null
     }
     @DisplayName("Проверка на пустую историю задач")
     @Test
@@ -48,7 +42,7 @@ public class InMemoryHistoryManagerTest {
         //Удалим их
         taskManager.deleteAll();
         InMemoryHistoryManager historyManager = taskManager.getHistoryManager();
-        assertEquals(historyManager.getAll().size(), 0, "Задачи не удалились из истории");
+        assertEquals(historyManager.size(), 0, "Задачи не удалились из истории");
     }
     //Удаление из истории: начало, середина, конец
     @DisplayName("Проверка истории после удаления задачи с первой позиции")

@@ -1,26 +1,26 @@
 package tests;
 
-import taskManager.memory.FileBackedTaskManager;
-import tasksModels.*;
+import service.file.FileBackedTaskManager;
+import model.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
-import static tasksModels.Status.*;
+import static model.Status.*;
 
 public class FileManagerMain {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         test();
     }
 
-    private static void test() throws IOException {
+    private static void test() {
 
         FileBackedTaskManager fileManager = getFileManager();
 
-        FileBackedTaskManager fileManagerReload = FileBackedTaskManager.loadFromFile(fileManager.getPath());
+        FileBackedTaskManager fileManagerReload = FileBackedTaskManager.loadManagerFromFile(fileManager.getPath());
 
         System.out.println("Все задачи, которые были в старом менеджере, есть в новом? Ответ " +
                 assertEquals(fileManager.getTasksAsList(), fileManagerReload.getTasksAsList()));
@@ -38,31 +38,32 @@ public class FileManagerMain {
         System.out.println(fileManagerReload.getPrioritizedTasks());
     }
 
-    private static FileBackedTaskManager getFileManager() throws IOException {
+    private static FileBackedTaskManager getFileManager() {
         FileBackedTaskManager fileManager = new FileBackedTaskManager();
 
-        Task task1 = new Task("Имя Задачи1", "Описание задачи1", NEW,
+        Task task1ToAdd = new Task(null,"Имя Задачи1", "Описание задачи1", NEW,
                 LocalDateTime.of(2022, 12, 13, 12, 45), 15);
-        fileManager.createTask(task1);
+        fileManager.createTask(task1ToAdd);
 
-        Task task2 = new Task("Имя Задачи2", "Описание задачи2", NEW,
+        Task task2ToAdd = new Task(null,"Имя Задачи2", "Описание задачи2", NEW,
                 LocalDateTime.of(2023, 2, 27, 2, 15), 200);
-        fileManager.createTask(task2);
+        fileManager.createTask(task2ToAdd);
 
-        Epic epic1 = new Epic("Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW);
-        fileManager.createEpic(epic1);
+        Epic epic1ToAdd = new Epic(null,"Эпик с тремя подзадачами", "Разделяется на 3 подзадачи", NEW,
+                LocalDateTime.now(), 0);
+        Epic epic1Added = fileManager.createEpic(epic1ToAdd);
 
-        Subtask subtask1_1 = new Subtask("Подзадача 1.1", "Subtask1 for epic1", NEW, epic1.getId(),
-                LocalDateTime.of(2021, 2, 27, 1, 50), 50);
-        fileManager.createSubtask(subtask1_1);
+        Subtask subtask1ToAdd = new Subtask(null, "Подзадача 1.1", "Subtask1 for epic1Added", NEW,
+                LocalDateTime.of(2021, 2, 27, 1, 50), 50, epic1Added.getId());
+        fileManager.createSubtask(subtask1ToAdd);
 
-        Subtask subtask1_2 = new Subtask("Подзадача 1.2", "Subtask2 for epic1", IN_PROGRESS, epic1.getId(),
-                LocalDateTime.of(2023, 3, 27, 2, 15), 200);
-        fileManager.createSubtask(subtask1_2);
+        Subtask subtask2ToAdd = new Subtask(null,"Подзадача 1.2", "Subtask2 for epic1Added", IN_PROGRESS,
+                LocalDateTime.of(2023, 3, 27, 2, 15), 200, epic1Added.getId());
+        fileManager.createSubtask(subtask2ToAdd);
 
-        Subtask subtask1_3 = new Subtask("Подзадача 1.3", "Subtask3 for epic1", DONE, epic1.getId(),
-                LocalDateTime.of(2025, 4, 26, 23, 35), 25);
-        fileManager.createSubtask(subtask1_3);
+        Subtask subtask3ToAdd = new Subtask(null,"Подзадача 1.3", "Subtask3 for epic1Added", DONE,
+                LocalDateTime.of(2025, 4, 26, 23, 35), 25, epic1Added.getId());
+        fileManager.createSubtask(subtask3ToAdd);
 
         return fileManager;
     }
@@ -71,38 +72,26 @@ public class FileManagerMain {
         if (expected.size() != actual.size()) {
             return false;
         }
+
         for (int i = 0; i < expected.size(); i++) {
+            Task expectedTask = expected.get(i);
+            Task actualTask = actual.get(i);
 
-            int expectedId = expected.get(i).getId();
-            int actualId = actual.get(i).getId();
-
-            String expectedName = expected.get(i).getName();
-            String actualName = actual.get(i).getName();
-
-            String expectedDescription = expected.get(i).getDescription();
-            String actualDescription = actual.get(i).getDescription();
-
-            Status expectedStatus = expected.get(i).getStatus();
-            Status actualStatus = actual.get(i).getStatus();
-
-            TaskType expectedType = expected.get(i).getType();
-            TaskType actualType = actual.get(i).getType();
-
-            //проверка для сравнения задач и эпиков
-            if (expectedType != actualType
-                    || expectedId != actualId
-                    || !Objects.equals(expectedName, actualName)
-                    || !Objects.equals(expectedDescription, actualDescription)
-                    || expectedStatus != actualStatus) {
+            if (!expectedTask.equals(actualTask)) {
                 return false;
             }
-            //проверка для сравнения подзадач
-            if (expectedType == TaskType.SUBTASK) {
-                if (!Objects.equals(expected.get(i).getEpicId(), actual.get(i).getEpicId())) {
-                    return false;
-                }
+
+            if (!expectedTask.getName().equals(actualTask.getName()) ||
+                    !expectedTask.getDescription().equals(actualTask.getDescription()) ||
+                    !expectedTask.getStatus().equals(actualTask.getStatus()) ||
+                    !expectedTask.getStartTime().equals(actualTask.getStartTime()) ||
+                    !expectedTask.getEndTime().equals(actualTask.getEndTime()) ||
+                    !expectedTask.getDurationInMinutes().equals(actualTask.getDurationInMinutes()) ||
+                    !expectedTask.getType().equals(actualTask.getType())) {
+                return false;
             }
         }
+
         return true;
     }
 }
