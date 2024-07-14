@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import service.TaskManager;
 import model.Subtask;
+import service.exceptions.OverlappingTasksTimeException;
 import service.exceptions.TaskNotFoundException;
 
 import java.io.IOException;
@@ -67,30 +68,34 @@ public class SubtaskHandler extends BaseHandler {
     private void handleSubtaskWithoutId(HttpExchange exchange) throws IOException {
         String method = exchange.getRequestMethod();
         switch (method) {
-            case "GET":
+            case "GET" -> {
                 String responseSubtasks = gson.toJson(manager.getSubtasksAsList());
                 sendResponse(exchange, responseSubtasks, 200);
                 System.out.println("Subtasks returned: " + responseSubtasks);
-                break;
-
-            case "POST":
+            }
+            case "POST" -> {
                 String requestTask = readText(exchange);
                 Subtask subtask = gson.fromJson(requestTask, Subtask.class);
                 System.out.println("(POST) Subtask deserialized: " + subtask);
+                try {
+                    if (subtask.getId() != null) { // Subtask UPDATE
+                        manager.updateSubtask(subtask);
+                        sendResponse(exchange, "Subtask successfully updated", 201);
+                        System.out.println("log = (POST) Subtask updated");
+                    } else { // Task CREATE
+                        manager.createSubtask(subtask);
+                        sendResponse(exchange, "Subtask successfully created!", 201);
+                        System.out.println("log = (POST) Subtask created");
 
-                if (subtask.getId() != null) { // Subtask UPDATE
-                    manager.updateSubtask(subtask);
-                    sendResponse(exchange, "Subtask successfully updated", 201);
-                    System.out.println("log = (POST) Subtask updated");
-                } else { // Task CREATE
-                    manager.createSubtask(subtask);
-                    sendResponse(exchange, "Subtask successfully created!", 201);
-                    System.out.println("log = (POST) Subtask created");
+                    }
+                } catch (OverlappingTasksTimeException e) {
+                    sendResponse(exchange, e.getMessage(), 406);
                 }
-                break;
-            default:
-                sendResponse(exchange, "("+method +") method not allowed here", 405);
-                System.out.println("log ("+method+")= Method not allowed here");
+            }
+            default -> {
+                sendResponse(exchange, "(" + method + ") method not allowed here", 405);
+                System.out.println("log (" + method + ")= Method not allowed here");
+            }
         }
     }
 }

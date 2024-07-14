@@ -1,6 +1,7 @@
 package serverTest.handlers;
 
 import factories.TaskFactory;
+import model.Subtask;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -29,7 +31,7 @@ public class HttpEpicHandlerTest extends HttpManagerTestConfig {
     }
 
     @Test
-    public void createRequestTest() throws IOException, InterruptedException {
+    public void createEpicRequestTest() throws IOException, InterruptedException {
         Epic epicWithoutSubs = TaskFactory.generateEpic("blank name","ignored");
         String epicJson = gson.toJson(epicWithoutSubs);
         System.out.println(epicJson);
@@ -42,7 +44,7 @@ public class HttpEpicHandlerTest extends HttpManagerTestConfig {
     }
 
     @Test
-    public void deleteRequestTest() throws IOException, InterruptedException {
+    public void deleteEpicRequestTest() throws IOException, InterruptedException {
         Epic epicToCreate = TaskFactory.generateEpic("Epic","Epic Description");
         Epic epic = testManager.createEpic(epicToCreate);
         testManager.createSubtask(TaskFactory.generateSubtask("subtaskA","subA description", epic.getId()));
@@ -58,19 +60,36 @@ public class HttpEpicHandlerTest extends HttpManagerTestConfig {
     }
 
     @Test
-    public void getListRequestTest() throws IOException, InterruptedException {
+    public void getEpicListRequestTest() throws IOException, InterruptedException {
         Epic epic = testManager.createEpic(TaskFactory.generateEpic("Epic","Epic Description"));
         testManager.createSubtask(TaskFactory.generateSubtask("subtaskA","subA description", epic.getId()));
         testManager.createSubtask(TaskFactory.generateSubtask("subtaskB","subB description", epic.getId()));
         testManager.createEpic(TaskFactory.generateEpic("EpicWithNoSubs","Epic no subs description"));
         assertEquals(2, testManager.getEpicsAsList().size(), "В менеджер должно попасть 2 эпика");
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = getRequest(EPIC_DEFAULT_URI);
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        var client = HttpClient.newHttpClient();
+        var request = getRequest(EPIC_DEFAULT_URI);
+        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
         assertEquals(200, response.statusCode(), "200 - код статуса GET .../epics");
 
         Epic[] epicsFromResponse = gson.fromJson(response.body(), Epic[].class);
         assertEquals(2, epicsFromResponse.length, "Неверное количество эпиков, полученных в ответе");
+    }
+
+    @Test
+    public void getEpicSubtasksRequestTest() throws IOException, InterruptedException {
+        Epic epic = testManager.createEpic(TaskFactory.generateEpic("Epic","Epic description"));
+        Subtask subtask1 = TaskFactory.generateSubtask("subtask1","sub1 description", epic.getId());
+        Subtask subtask2 = TaskFactory.generateSubtask("subtask2","sub2 description", epic.getId());
+        subtask2.setStartTime(subtask1.getStartTime().plusDays(15));
+        testManager.createSubtask(subtask1);
+        testManager.createSubtask(subtask2);
+
+        var client = HttpClient.newHttpClient();
+        var request = getRequest(EPIC_DEFAULT_URI + "/" + epic.getId() + "/subtasks");
+        var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, response.statusCode());
+        Subtask[] subtasksResponse = gson.fromJson(response.body(), Subtask[].class);
+        assertEquals(2, subtasksResponse.length, "Invalid length of subtasks for epic");
 
     }
 }

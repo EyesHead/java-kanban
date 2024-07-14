@@ -80,7 +80,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task createTask(Task task) {
+    public Task createTask(Task task) throws OverlappingTasksTimeException {
         Task newTask = new Task(generateId(), task.getName(), task.getDescription(), task.getStatus(),
                 task.getStartTime(), (int) task.getDurationInMinutes().toMinutes());
 
@@ -89,7 +89,7 @@ public class InMemoryTaskManager implements TaskManager {
             prioritizedTasks.add(newTask);
             System.out.println(newTask);
         } catch (OverlappingTasksTimeException _) {
-            System.out.println("was not added to priority:\n" + task);
+            throw new OverlappingTasksTimeException("was not added to priority:\n" + task);
         }
 
         tasks.put(newTask.getId(), newTask);
@@ -105,7 +105,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Subtask createSubtask(Subtask subtask) {
+    public Subtask createSubtask(Subtask subtask) throws OverlappingTasksTimeException {
         Subtask newSubtask = new Subtask(generateId(), subtask.getName(), subtask.getDescription(), subtask.getStatus(),
                 subtask.getStartTime(), (int) subtask.getDurationInMinutes().toMinutes(), subtask.getEpicId());
         // обновляем список подзадач у эпика
@@ -120,7 +120,7 @@ public class InMemoryTaskManager implements TaskManager {
             validateTimeOnOverlap(newSubtask);
             prioritizedTasks.add(newSubtask);
         } catch (OverlappingTasksTimeException _) {
-            System.out.println("was not added to priority:\n" + newSubtask);
+            throw new OverlappingTasksTimeException("was not added to priority:\n" + newSubtask);
         }
 
         return newSubtask;
@@ -137,7 +137,7 @@ public class InMemoryTaskManager implements TaskManager {
             validateTimeOnOverlap(newTask);
             prioritizedTasks.add(newTask);
         } catch (OverlappingTasksTimeException _) {
-            System.out.println("was not added to priority:\n" + newTask);
+            throw new OverlappingTasksTimeException("Task was not added to priority:\n" + newTask);
         }
         tasks.put(newTask.getId(), newTask);
     }
@@ -158,7 +158,7 @@ public class InMemoryTaskManager implements TaskManager {
             validateTimeOnOverlap(newSubtask);
             prioritizedTasks.add(newSubtask);
         } catch (OverlappingTasksTimeException _) {
-            System.out.println("was not added to priority:\n" + newSubtask);
+            throw new OverlappingTasksTimeException("Subtask was not added to priority:\n" + newSubtask);
         }
 
         subtasks.put(newSubtask.getId(), newSubtask);

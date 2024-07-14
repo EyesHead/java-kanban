@@ -20,11 +20,11 @@ public class EpicHandler extends BaseHandler {
         try (exchange) {
             String path = exchange.getRequestURI().getPath();
             if (path.equals("/epics")) {
-                handleEpicPathWithoutId(exchange);
+                handleEpicUriWithoutIdParameter(exchange);
             } else if (path.matches("^/epics/\\d+$")) {
-                handleEpicPathWithId(exchange, path);
+                handleEpicUriWithIdParameter(exchange, path);
             } else if (path.matches("^/epics/\\d+/subtasks$")) {
-                handleEpicSubtasksPath(exchange, path);
+                handleEpicUriWithSubtasks(exchange, path);
             } else {
                 sendResponse(exchange, "Resource wasn't found", 404);
             }
@@ -34,14 +34,38 @@ public class EpicHandler extends BaseHandler {
         }
     }
 
-    private void handleEpicPathWithId(HttpExchange exchange, String path) throws IOException {
+    private void handleEpicUriWithoutIdParameter(HttpExchange exchange) throws IOException {
+        String method = exchange.getRequestMethod();
+        switch (method) {
+            case "GET" -> {
+                String responseEpics = gson.toJson(manager.getEpicsAsList());
+                sendResponse(exchange, responseEpics, 200);
+            }
+            case "POST" -> {
+                Epic epic = gson.fromJson(readText(exchange), Epic.class);
+                System.out.println("(POST) Epic deserialized from json: " + epic);
+                if (epic.getId() == null) { // Epic create
+                    manager.createEpic(epic);
+                    sendResponse(exchange, "Epic successfully created!", 201);
+                    break;
+                }
+                sendResponse(exchange,"Invalid Json entry of Java object", 400);
+            }
+            default -> {
+                sendResponse(exchange, "(" + method + ") method not allowed here", 405);
+                System.out.println("log (" + method + ")= Method not allowed here");
+            }
+        }
+    }
+
+    private void handleEpicUriWithIdParameter(HttpExchange exchange, String path) throws IOException {
         try {
             int id = Integer.parseInt(path.replace("/epics/", "")); //400 Number format
             String method = exchange.getRequestMethod();
             switch (method) {
                 case "GET":
                     try {
-                        Epic epic = manager.getEpicById(id); //404 not found
+                        Epic epic = manager.getEpicById(id);//404
                         sendResponse(exchange, gson.toJson(epic), 200);
                     } catch (TaskNotFoundException e) {
                         sendResponse(exchange, "Epic with id " + id + " not found", 404);
@@ -59,30 +83,7 @@ public class EpicHandler extends BaseHandler {
         }
     }
 
-    private void handleEpicPathWithoutId(HttpExchange exchange) throws IOException {
-        String method = exchange.getRequestMethod();
-        switch (method) {
-            case "GET":
-                String responseEpics = gson.toJson(manager.getEpicsAsList());
-                sendResponse(exchange, responseEpics, 200);
-                break;
-            case "POST":
-                Epic epic = gson.fromJson(readText(exchange), Epic.class);
-                System.out.println("(POST) Epic deserialized from json: " + epic);
-                if (epic.getId() == null) { // Epic create
-                    manager.createEpic(epic);
-                    sendResponse(exchange, "Epic successfully created!", 201);
-                    break;
-                }
-                sendResponse(exchange,"Invalid Json entry of Java object", 400);
-                break;
-            default:
-                sendResponse(exchange, "("+method +") method not allowed here", 405);
-                System.out.println("log ("+method+")= Method not allowed here");
-        }
-    }
-
-    private void handleEpicSubtasksPath(HttpExchange exchange, String path) throws IOException {
+    private void handleEpicUriWithSubtasks(HttpExchange exchange, String path) throws IOException {
         try {
             int id = Integer.parseInt(path.replace("/epics/", "")
                     .replace("/subtasks", "")); //400 number format exc
@@ -90,9 +91,10 @@ public class EpicHandler extends BaseHandler {
             String method = exchange.getRequestMethod();
             if (method.equals("GET")) {
                 try {
-                    Epic epic = manager.getEpicById(id);
-                    sendResponse(exchange, gson.toJson(epic.getEpicSubtasks()), 200);
-                } catch (IllegalArgumentException e) {
+                    Epic epic = manager.getEpicById(id);//404
+                    var subtaskList = manager.getEpicSubtasks(epic.getId());
+                    sendResponse(exchange, gson.toJson(subtaskList), 200);
+                } catch (TaskNotFoundException e) {
                     sendResponse(exchange, "Epic with id " + id + " not found", 404);
                 }
             } else {
