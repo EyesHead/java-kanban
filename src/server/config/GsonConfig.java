@@ -1,8 +1,8 @@
-package service.server.config;
+package server.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import service.server.GsonAdapters;
+import server.GsonAdapters;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

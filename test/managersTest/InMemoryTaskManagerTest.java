@@ -3,7 +3,7 @@ package managersTest;
 import factories.TaskFactory;
 import model.Epic;
 import service.ManagersCreator;
-import service.memory.InMemoryTaskManager;
+import service.inMemory.repository.InMemoryTaskManager;
 import model.Subtask;
 import model.Task;
 import org.junit.jupiter.api.BeforeEach;

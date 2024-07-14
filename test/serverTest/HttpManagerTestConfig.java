@@ -1,21 +1,21 @@
 package serverTest;
 
 import com.google.gson.Gson;
-import service.server.config.GsonConfig;
+import server.config.GsonConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import service.server.HttpTaskServer;
+import server.HttpTaskServer;
 import service.TaskManager;
-import service.memory.InMemoryTaskManager;
+import service.inMemory.repository.InMemoryTaskManager;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
 
 public class HttpManagerTestConfig {
-    protected TaskManager testManager = new InMemoryTaskManager();
-    protected HttpTaskServer testServer = new HttpTaskServer(testManager);
-    protected Gson gson = GsonConfig.getGson();
-    protected String URL = "http://localhost:8080";
+    protected final TaskManager testManager = new InMemoryTaskManager();
+    protected final HttpTaskServer testServer = new HttpTaskServer(testManager);
+    protected final Gson gson = GsonConfig.getGson();
+    protected final String URL = "http://localhost:8080";
 
     @BeforeEach
     protected void setUp() {

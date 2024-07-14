@@ -2,7 +2,7 @@ package managersTest;
 
 import factories.TaskFactory;
 import service.history.InMemoryHistoryManager;
-import service.memory.InMemoryTaskManager;
+import service.inMemory.repository.InMemoryTaskManager;
 import service.ManagersCreator;
 import model.Task;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,13 +16,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class InMemoryHistoryManagerTest {
     static InMemoryTaskManager taskManager = ManagersCreator.getDefaultTaskManager();
 
-    Task task1 = TaskFactory.generateTask("Task 1", "Task 1 description");
+    Task task1;
 
-    Task task2 = TaskFactory.generateTask("Task 2", "Task 2 description");
-    Task task3 = TaskFactory.generateTask("Task 3", "Task 3 description");
+    Task task2;
+    Task task3;
 
     @BeforeEach
     public void beforeEach() {
+        task1 = TaskFactory.generateTask("Task 1", "Task 1 description");
+        task2 = TaskFactory.generateTask("Task 2", "Task 2 description");
+        task3 = TaskFactory.generateTask("Task 3", "Task 3 description");
+
         task1 = taskManager.createTask(task1);
         task2 = taskManager.createTask(task2);
         task3 = taskManager.createTask(task3);

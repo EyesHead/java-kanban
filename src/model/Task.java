@@ -13,7 +13,7 @@ public class Task {
     private Duration durationInMinutes;
     private LocalDateTime startTime;
 
-    public Task (Integer id, String name, String description, Status status,
+    public Task(Integer id, String name, String description, Status status,
                 LocalDateTime startTime, int durationInMinutes) {
         this.type = TaskType.TASK;
         this.id = id;
