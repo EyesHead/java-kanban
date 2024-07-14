@@ -1,5 +1,6 @@
 package service;
 
+import org.jetbrains.annotations.NotNull;
 import service.exceptions.OverlappingTasksTimeException;
 import service.exceptions.TaskNotFoundException;
 import service.history.InMemoryHistoryManager;
@@ -22,9 +23,9 @@ public interface TaskManager {
     void deleteAllEpics();
     void deleteAllSubtasks();
 
-    void deleteTaskById(int taskId);
-    void deleteEpicById(int epicId);
-    void deleteSubtaskById(int subtaskId);
+    void deleteTaskById(@NotNull Integer taskId);
+    void deleteEpicById(@NotNull Integer epicId);
+    void deleteSubtaskById(@NotNull Integer subtaskId);
     void deleteAll();
 
     //методы обновления

@@ -1,13 +1,13 @@
-package service.server;
+package server;
 
 import com.sun.net.httpserver.HttpServer;
+import server.handlers.*;
 import service.ManagersCreator;
-import service.server.config.GsonConfig;
+import server.config.GsonConfig;
 import service.TaskManager;
 import model.Task;
 import model.Status;
-import service.server.handlers.*;
-import tests.util.LDTRandomizer;
+import tests.utils.LDTRandomizer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,10 +15,6 @@ import java.net.InetSocketAddress;
 public class HttpTaskServer {
     public static final int PORT = 8080;
     private static HttpServer server;
-
-    public HttpTaskServer() {
-        this(ManagersCreator.getDefaultTaskManager());
-    }
 
     public HttpTaskServer(TaskManager manager) {
         try {

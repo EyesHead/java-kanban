@@ -1,11 +1,12 @@
 package tests;
 
+import service.TaskManager;
 import service.file.FileBackedTaskManager;
 import service.ManagersCreator;
 import model.Epic;
 import model.Subtask;
 import model.Task;
-import tests.util.LDTRandomizer;
+import tests.utils.LDTRandomizer;
 
 import static model.Status.NEW;
 
@@ -47,7 +48,7 @@ public class HistoryManagerMain {
         //История просмотров
         taskManager.getEpicById(addedEpic.getId());
         taskManager.getEpicById(addedEpic2.getId());
-        taskManager.printAllHistory();
+        printAllHistory(taskManager);
 
         System.out.println();
         System.out.println("Добавим ещё задачи, в том числе дубликаты (их отобразиться не должно)");
@@ -55,7 +56,7 @@ public class HistoryManagerMain {
         taskManager.getEpicById(addedEpic2.getId());
         taskManager.getTaskById(addedTask2.getId());
         taskManager.getEpicById(addedEpic2.getId());
-        taskManager.printAllHistory();
+        printAllHistory(taskManager);
 
         System.out.println();
         System.out.println("Добавим ещё подзадачи, при чём по несколько раз одни и те же" +
@@ -67,8 +68,14 @@ public class HistoryManagerMain {
         taskManager.getSubtaskById(addedSubtask1.getId());
         taskManager.getSubtaskById(addedSubtask1.getId());
         taskManager.getEpicById(addedEpic.getId());
-        taskManager.printAllHistory();
+        printAllHistory(taskManager);
 
+    }
+
+    public static void printAllHistory(TaskManager manager) {
+        System.out.println("История:");
+        var historyManager = manager.getHistoryManager();
+        historyManager.getAll().forEach(System.out::println);
     }
 
 

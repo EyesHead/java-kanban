@@ -1,5 +1,6 @@
-package service.memory;
+package service.inMemory.repository;
 
+import org.jetbrains.annotations.NotNull;
 import service.ManagersCreator;
 import model.Epic;
 import model.Subtask;
@@ -13,11 +14,11 @@ import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     protected int managerId = 0;
-    protected Map<Integer, Task> tasks = new HashMap<>();
-    protected Map<Integer, Epic> epics = new HashMap<>();
-    protected Map<Integer, Subtask> subtasks = new HashMap<>();
-    protected InMemoryHistoryManager historyManager;
-    protected TreeSet<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+    protected final Map<Integer, Task> tasks = new HashMap<>();
+    protected final Map<Integer, Epic> epics = new HashMap<>();
+    protected final Map<Integer, Subtask> subtasks = new HashMap<>();
+    protected final InMemoryHistoryManager historyManager;
+    protected final TreeSet<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
 
     public InMemoryTaskManager() {
         historyManager = ManagersCreator.getDefaultHistory();
@@ -207,7 +208,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void deleteTaskById(int taskId) {
+    public void deleteTaskById(@NotNull Integer taskId) {
         if (!tasks.containsKey(taskId)) {
             throw new TaskNotFoundException("Task not found by id in manager");
         }
@@ -218,7 +219,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void deleteEpicById(int epicId) throws TaskNotFoundException {
+    public void deleteEpicById(@NotNull Integer epicId) throws TaskNotFoundException {
         if (!epics.containsKey(epicId)) {
             throw new TaskNotFoundException("Epic not found by id in manager");
         }
@@ -235,7 +236,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void deleteSubtaskById(int subtaskId) {
+    public void deleteSubtaskById(@NotNull Integer subtaskId) {
         if (!subtasks.containsKey(subtaskId)) {
             throw new TaskNotFoundException("Epic not found by id in manager");
         }
@@ -271,11 +272,6 @@ public class InMemoryTaskManager implements TaskManager {
         allTasks.addAll(epics.values());
         allTasks.addAll(subtasks.values());
         return allTasks;
-    }
-
-    public void printAllHistory() {
-        System.out.println("История:");
-        historyManager.getAll().forEach(System.out::println);
     }
 
     protected Epic getEpicBySubtask(Subtask subtask) {

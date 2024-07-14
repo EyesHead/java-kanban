@@ -1,10 +1,11 @@
 package service.file;
 
+import org.jetbrains.annotations.NotNull;
 import service.ManagersCreator;
 import service.exceptions.ManagerIOException;
 import model.*;
 import service.history.InMemoryHistoryManager;
-import service.memory.InMemoryTaskManager;
+import service.inMemory.repository.InMemoryTaskManager;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -236,7 +237,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void deleteTaskById(int taskId) {
+    public void deleteTaskById(@NotNull Integer taskId) {
         super.deleteTaskById(taskId);
         try {
             save();
@@ -245,7 +246,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
     @Override
-    public void deleteEpicById(int epicId) {
+    public void deleteEpicById(@NotNull Integer epicId) {
         super.deleteEpicById(epicId);
         try {
             save();
@@ -254,7 +255,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
     @Override
-    public void deleteSubtaskById(int subtaskId) {
+    public void deleteSubtaskById(@NotNull Integer subtaskId) {
         super.deleteSubtaskById(subtaskId);
         try {
             save();

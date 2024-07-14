@@ -2,27 +2,17 @@ package model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static model.Status.NEW;
 
 public class Epic extends Task {
-    private List<Subtask> epicSubtasks = new ArrayList<>();
+    private final List<Subtask> epicSubtasks = new ArrayList<>();
 
-    /**
-     * Этот конструктор используется исключительно для сериализации/десериализации задач, которые УЖЕ были добавлены
-     * в менеджер
-     * @param id создается и присваивается в менеджере. При использовании конструктора должнен быть определен не null
-     *           значением
-     */
     public Epic(Integer id, String name, String description, Status status,
                 LocalDateTime startTime, int durationInMinutes) {
         super(id, name, description, status, startTime, durationInMinutes);
         setType(TaskType.EPIC);
-        setEpicSubtasks(new ArrayList<>());
     }
 
     private void updateStatus() {
@@ -58,7 +48,7 @@ public class Epic extends Task {
     }
 
     public void setEpicSubtasks(List<Subtask> epicSubtasks) {
-        this.epicSubtasks = epicSubtasks;
+        Collections.addAll(epicSubtasks);
     }
 
     public List<Subtask> getEpicSubtasks() {

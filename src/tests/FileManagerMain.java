@@ -1,12 +1,10 @@
 package tests;
 
-import service.file.FileBackedTaskManager;
 import model.*;
+import service.file.FileBackedTaskManager;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static model.Status.*;
