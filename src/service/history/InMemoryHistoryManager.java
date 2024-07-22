@@ -76,35 +76,35 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     //Удаление из связанного списка
-    private void removeNode(Node current) {
-        if (current == null) return;
+    private void removeNode(Node currentNode) {
+        if (currentNode == null) return;
 
         // (head)CURRENT <-> nodeNext <-> ...   |   (head)nodeNext <-> ...
-        if (current.prev == null && current.next != null) {
-            current.next.prev = null;
-            head = current.next;
+        if (currentNode.prev == null && currentNode.next != null) {
+            currentNode.next.prev = null;
+            head = currentNode.next;
         }
 
         // (head)nodePrev <-> CURRENT <-> nodeNext(tail)    |   (head)nodePrev <-> nodeNext(tail)
-        if (current.prev != null && current.next != null) {
-            current.prev.next = current.next;
-            current.next.prev = current.prev;
+        if (currentNode.prev != null && currentNode.next != null) {
+            currentNode.prev.next = currentNode.next;
+            currentNode.next.prev = currentNode.prev;
         }
 
         // ... <-> nodePrev <-> CURRENT(tail)   |   ... <-> nodePrev(tail)
-        if (current.next == null && current.prev != null) {
-            current.prev.next = null;
-            tail = current.prev;
+        if (currentNode.next == null && currentNode.prev != null) {
+            currentNode.prev.next = null;
+            tail = currentNode.prev;
         }
 
         // null <-> CURRENT(tail + head) <-> null
-        if (current.next == null && current.prev == null) {
-            historyMap.remove(current.item.getId());
+        if (currentNode.next == null && currentNode.prev == null) {
+            historyMap.remove(currentNode.item.getId());
             tail = null;
             head = null;
             return;
         }
 
-        historyMap.remove(current.item.getId());
+        historyMap.remove(currentNode.item.getId());
     }
 }
